@@ -7,6 +7,7 @@
 - 注销当前会话后返回登录界面，无需重启程序
 - 管理员用户维护：新增、删除、角色切换、密码重置
 - 实时数据展示：温度、湿度、PM2.5、CO2 指标卡片与趋势图
+- 实时数据预测：趋势图默认显示最近 50 条真实数据，并预测接下来 5 条数据，以虚线显示
 - 历史数据查询与统计：按时间范围查询，展示最小值、最大值、平均值
 - 异常报警：阈值配置、冷却时间、防重复触发、报警记录持久化
 - CSV 导出：历史数据、统计结果、报警记录
@@ -37,7 +38,7 @@
 - src/themeutils.h：主题管理器声明，定义浅色、深色、跟随系统三种主题模式及其查询、切换接口。
 - src/themeutils.cpp：主题管理器实现，负责固定控件风格、应用调色板、记录当前主题状态并触发全局主题刷新。
 - src/linechartwidget.h：折线图控件声明，用于展示实时环境数据趋势。
-- src/linechartwidget.cpp：折线图控件实现，负责绘制温度、湿度、PM2.5、CO2 的历史曲线。
+- src/linechartwidget.cpp：折线图控件实现，当前已接入 QCustomPlot 绘制温度、湿度、PM2.5、CO2 曲线，默认展示最近 50 条真实数据和 5 条预测数据，并将图例放在图表下方水平排列。
 
 ### src/common
 - src/common/moduletypes.h：共享数据结构定义，包括用户信息、环境样本、统计结果、报警设置、报警事件和导出筛选项。
@@ -94,6 +95,16 @@
 ```powershell
 cmake --build build/Desktop_Qt_6_9_3_llvm_mingw_64_bit-Debug
 ```
+
+### QCustomPlot 接入
+项目现在支持直接使用仓库中的 QCustomPlot 源码。当前约定位置为 src/extern/qcustomplot.h 和 src/extern/qcustomplot.cpp；检测到这两个文件存在时，CMake 会默认启用 QCustomPlot 图表实现。
+
+```powershell
+cmake -S . -B build/Desktop_Qt_6_9_3_llvm_mingw_64_bit-Debug -DNATURAL_MONITOR_USE_QCUSTOMPLOT=ON
+cmake --build build/Desktop_Qt_6_9_3_llvm_mingw_64_bit-Debug
+```
+
+如果移除 extern 目录中的对应源码，工程会自动回退到当前内置图表实现。
 
 ## Windows 打包
 

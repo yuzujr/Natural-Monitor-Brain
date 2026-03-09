@@ -3,6 +3,7 @@
 
 #include <QDateTime>
 #include <QMainWindow>
+#include <QPointer>
 
 #include "common/moduletypes.h"
 #include "databasemanager.h"
@@ -14,6 +15,7 @@ class ExportPageWidget;
 class HistoryPageWidget;
 class AlarmRepository;
 class AlarmService;
+class QMessageBox;
 class QTabWidget;
 class QTimer;
 class RealtimePageWidget;
@@ -85,6 +87,7 @@ private:
     UserManagementPageWidget *userPage_ = nullptr;
 
     QTimer *dataTimer_ = nullptr;
+    QPointer<QMessageBox> currentAlarmBox_;
     bool simulationRunning_ = true;
     EnvSample lastSample_;
     int refreshIntervalMs_ = 1000;

@@ -15,7 +15,7 @@
 #include "linechartwidget.h"
 
 namespace {
-constexpr int kDefaultMaxPoints = 60;
+constexpr int kDefaultMaxPoints = 50;
 }
 
 RealtimePageWidget::RealtimePageWidget(QWidget *parent)

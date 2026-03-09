@@ -9,8 +9,31 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Sql)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Sql PrintSupport)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql PrintSupport)
+
+set(NATURAL_MONITOR_USE_QCUSTOMPLOT_DEFAULT OFF)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/qcustomplot.h" AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/qcustomplot.cpp")
+    set(NATURAL_MONITOR_USE_QCUSTOMPLOT_DEFAULT ON)
+endif()
+
+option(NATURAL_MONITOR_USE_QCUSTOMPLOT "Use bundled QCustomPlot sources when available" ${NATURAL_MONITOR_USE_QCUSTOMPLOT_DEFAULT})
+if(NATURAL_MONITOR_USE_QCUSTOMPLOT_DEFAULT)
+    set(NATURAL_MONITOR_USE_QCUSTOMPLOT ON CACHE BOOL "Use bundled QCustomPlot sources when available" FORCE)
+endif()
+
+set(QCUSTOMPLOT_SOURCES)
+if(NATURAL_MONITOR_USE_QCUSTOMPLOT)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/qcustomplot.h" AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/qcustomplot.cpp")
+        list(APPEND QCUSTOMPLOT_SOURCES
+            src/extern/qcustomplot.h
+            src/extern/qcustomplot.cpp
+        )
+        add_compile_definitions(NATURAL_MONITOR_USE_QCUSTOMPLOT)
+    else()
+        message(WARNING "NATURAL_MONITOR_USE_QCUSTOMPLOT=ON, but src/extern/qcustomplot.h/.cpp were not found. Falling back to the built-in chart renderer.")
+    endif()
+endif()
 
 set(PROJECT_SOURCES
     src/main.cpp
@@ -49,6 +72,7 @@ set(PROJECT_SOURCES
     src/pages/settingspagewidget.h
     src/pages/usermanagementpagewidget.cpp
     src/pages/usermanagementpagewidget.h
+    ${QCUSTOMPLOT_SOURCES}
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -74,7 +98,11 @@ else()
     endif()
 endif()
 
-target_link_libraries(Natural-Monitor-Brain PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Sql)
+target_link_libraries(Natural-Monitor-Brain PRIVATE
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Sql
+    Qt${QT_VERSION_MAJOR}::PrintSupport
+)
 
 target_include_directories(Natural-Monitor-Brain PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -82,6 +110,7 @@ target_include_directories(Natural-Monitor-Brain PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pages
     ${CMAKE_CURRENT_SOURCE_DIR}/src/repositories
     ${CMAKE_CURRENT_SOURCE_DIR}/src/services
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/extern
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

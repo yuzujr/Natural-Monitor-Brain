@@ -656,23 +656,37 @@ void MainWindow::showAlarmEvents(const QList<AlarmEvent> &events)
         return;
     }
 
+    if (currentAlarmBox_) {
+        currentAlarmBox_->close();
+        currentAlarmBox_->deleteLater();
+        currentAlarmBox_.clear();
+    }
+
     if (settingsPage_->soundMode() == QStringLiteral("beep")) {
         QApplication::beep();
     }
 
     QStringList lines;
     for (const AlarmEvent &event : events) {
-        lines << tr("%1 超过阈值: %2 / %3")
+        lines << tr("[%1] %2 超过阈值: 当前值 %3，阈值 %4")
+                     .arg(event.ts.toString("yyyy-MM-dd HH:mm:ss"))
                      .arg(event.param)
                      .arg(QString::number(event.value, 'f', 1))
                      .arg(QString::number(event.threshold, 'f', 1));
     }
 
+    const QString title = events.size() > 1 ? tr("多指标预警报告") : tr("预警报告");
     auto *box = new QMessageBox(QMessageBox::Warning,
-                                tr("报警"),
-                                lines.join('\n'),
+                                title,
+                                tr("本次检测发现 %1 项异常：\n%2").arg(events.size()).arg(lines.join('\n')),
                                 QMessageBox::Ok,
                                 this);
     box->setAttribute(Qt::WA_DeleteOnClose);
+    currentAlarmBox_ = box;
+    connect(box, &QObject::destroyed, this, [this, box]() {
+        if (currentAlarmBox_ == box) {
+            currentAlarmBox_.clear();
+        }
+    });
     box->show();
 }

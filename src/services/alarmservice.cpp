@@ -42,6 +42,7 @@ void AlarmService::evaluateMetric(const QString &param, double value, double thr
     }
 
     AlarmEvent event;
+    event.ts = now;
     event.param = param;
     event.value = value;
     event.threshold = threshold;

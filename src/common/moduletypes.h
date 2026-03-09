@@ -1,6 +1,7 @@
 #ifndef MODULETYPES_H
 #define MODULETYPES_H
 
+#include <QDateTime>
 #include <QString>
 
 struct SampleSelection
@@ -23,6 +24,7 @@ struct AlarmSettings
 
 struct AlarmEvent
 {
+    QDateTime ts;
     QString param;
     double value = 0.0;
     double threshold = 0.0;

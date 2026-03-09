@@ -65,6 +65,26 @@ QColor accentPressedColor()
     return isDarkTheme() ? accentColor().darker(118) : accentColor().darker(115);
 }
 
+QColor primaryButtonColor()
+{
+    return isDarkTheme() ? QColor(QStringLiteral("#2c6da8")) : QColor(QStringLiteral("#a9d4fb"));
+}
+
+QColor primaryButtonHoverColor()
+{
+    return isDarkTheme() ? primaryButtonColor().lighter(110) : primaryButtonColor().darker(105);
+}
+
+QColor primaryButtonPressedColor()
+{
+    return isDarkTheme() ? primaryButtonColor().darker(114) : primaryButtonColor().darker(112);
+}
+
+QColor primaryButtonTextColor()
+{
+    return isDarkTheme() ? QColor(QStringLiteral("#f3f9ff")) : QColor(QStringLiteral("#102234"));
+}
+
 QColor secondaryButtonColor()
 {
     return isDarkTheme() ? panelColor().lighter(108) : panelColor().darker(102);
@@ -93,6 +113,11 @@ QColor dangerHoverColor()
 QColor dangerPressedColor()
 {
     return isDarkTheme() ? dangerColor().darker(116) : dangerColor().darker(112);
+}
+
+QColor dangerTextColor()
+{
+    return isDarkTheme() ? QColor(QStringLiteral("#fff4f6")) : QColor(QStringLiteral("#2f0d11"));
 }
 
 QColor subtleTextColor()
@@ -164,14 +189,14 @@ QString buttonRules()
         "QPushButton[variant=\"secondary\"] { background: %5; color: %6; border: 1px solid %7; }"
         "QPushButton[variant=\"secondary\"]:hover { background: %8; }"
         "QPushButton[variant=\"secondary\"]:pressed { background: %9; }"
-        "QPushButton[variant=\"danger\"] { background: %10; color: white; }"
+        "QPushButton[variant=\"danger\"] { background: %10; color: %13; }"
         "QPushButton[variant=\"danger\"]:hover { background: %11; }"
         "QPushButton[variant=\"danger\"]:pressed { background: %12; }"
     )
-        .arg(colorToString(accentColor()))
-        .arg(QStringLiteral("white"))
-        .arg(colorToString(accentHoverColor()))
-        .arg(colorToString(accentPressedColor()))
+        .arg(colorToString(primaryButtonColor()))
+        .arg(colorToString(primaryButtonTextColor()))
+        .arg(colorToString(primaryButtonHoverColor()))
+        .arg(colorToString(primaryButtonPressedColor()))
         .arg(colorToString(secondaryButtonColor()))
             .arg(colorToString(primaryTextColor()))
         .arg(colorToString(borderColor()))
@@ -179,7 +204,8 @@ QString buttonRules()
         .arg(colorToString(secondaryButtonPressedColor()))
         .arg(colorToString(dangerColor()))
         .arg(colorToString(dangerHoverColor()))
-        .arg(colorToString(dangerPressedColor()));
+        .arg(colorToString(dangerPressedColor()))
+        .arg(colorToString(dangerTextColor()));
 }
 
 QString calendarRules()
