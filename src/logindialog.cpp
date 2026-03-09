@@ -29,6 +29,8 @@ LoginDialog::LoginDialog(DatabaseManager *db, QWidget *parent)
     auto *loginForm = new QFormLayout(loginPage);
     loginUserEdit_ = new QLineEdit(loginPage);
     loginPassEdit_ = new QLineEdit(loginPage);
+    loginUserEdit_->setPlaceholderText(tr("请输入用户名"));
+    loginPassEdit_->setPlaceholderText(tr("请输入密码"));
     loginPassEdit_->setEchoMode(QLineEdit::Password);
     loginForm->addRow(tr("用户名"), loginUserEdit_);
     loginForm->addRow(tr("密码"), loginPassEdit_);
@@ -40,6 +42,8 @@ LoginDialog::LoginDialog(DatabaseManager *db, QWidget *parent)
     auto *loginButtons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, loginPage);
     loginButtons->button(QDialogButtonBox::Ok)->setText(tr("登录"));
     loginButtons->button(QDialogButtonBox::Cancel)->setText(tr("退出"));
+    UiStyles::applyButtonVariant(loginButtons->button(QDialogButtonBox::Ok), QStringLiteral("primary"));
+    UiStyles::applyButtonVariant(loginButtons->button(QDialogButtonBox::Cancel), QStringLiteral("secondary"));
     connect(loginButtons, &QDialogButtonBox::accepted, this, &LoginDialog::handleLogin);
     connect(loginButtons, &QDialogButtonBox::rejected, this, &LoginDialog::reject);
     loginForm->addRow(loginButtons);
@@ -49,6 +53,9 @@ LoginDialog::LoginDialog(DatabaseManager *db, QWidget *parent)
     regUserEdit_ = new QLineEdit(registerPage);
     regPassEdit_ = new QLineEdit(registerPage);
     regPassConfirmEdit_ = new QLineEdit(registerPage);
+    regUserEdit_->setPlaceholderText(tr("新用户名"));
+    regPassEdit_->setPlaceholderText(tr("设置密码"));
+    regPassConfirmEdit_->setPlaceholderText(tr("再次输入密码"));
     regPassEdit_->setEchoMode(QLineEdit::Password);
     regPassConfirmEdit_->setEchoMode(QLineEdit::Password);
     registerForm->addRow(tr("用户名"), regUserEdit_);
@@ -57,6 +64,7 @@ LoginDialog::LoginDialog(DatabaseManager *db, QWidget *parent)
 
     auto *registerButtons = new QDialogButtonBox(QDialogButtonBox::Ok, registerPage);
     registerButtons->button(QDialogButtonBox::Ok)->setText(tr("注册"));
+    UiStyles::applyButtonVariant(registerButtons->button(QDialogButtonBox::Ok), QStringLiteral("primary"));
     connect(registerButtons, &QDialogButtonBox::accepted, this, &LoginDialog::handleRegister);
     registerForm->addRow(registerButtons);
 
@@ -65,6 +73,9 @@ LoginDialog::LoginDialog(DatabaseManager *db, QWidget *parent)
     resetUserEdit_ = new QLineEdit(resetPage);
     resetPassEdit_ = new QLineEdit(resetPage);
     resetPassConfirmEdit_ = new QLineEdit(resetPage);
+    resetUserEdit_->setPlaceholderText(tr("需要重置的用户名"));
+    resetPassEdit_->setPlaceholderText(tr("输入新密码"));
+    resetPassConfirmEdit_->setPlaceholderText(tr("再次输入新密码"));
     resetPassEdit_->setEchoMode(QLineEdit::Password);
     resetPassConfirmEdit_->setEchoMode(QLineEdit::Password);
     resetForm->addRow(tr("用户名"), resetUserEdit_);
@@ -73,6 +84,7 @@ LoginDialog::LoginDialog(DatabaseManager *db, QWidget *parent)
 
     auto *resetButtons = new QDialogButtonBox(QDialogButtonBox::Ok, resetPage);
     resetButtons->button(QDialogButtonBox::Ok)->setText(tr("重置密码"));
+    UiStyles::applyButtonVariant(resetButtons->button(QDialogButtonBox::Ok), QStringLiteral("danger"));
     connect(resetButtons, &QDialogButtonBox::accepted, this, &LoginDialog::handleReset);
     resetForm->addRow(resetButtons);
 

@@ -45,6 +45,7 @@ HistoryPageWidget::HistoryPageWidget(QWidget *parent)
     co2Check_->setChecked(true);
 
     auto *queryButton = new QPushButton(tr("查询"), filterGroup);
+    UiStyles::applyButtonVariant(queryButton, QStringLiteral("primary"));
     connect(queryButton, &QPushButton::clicked, this, [this]() {
         emit queryRequested(startEdit_->dateTime(), endEdit_->dateTime());
     });

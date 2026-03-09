@@ -186,6 +186,97 @@ bool applyQt6ctPalette(QString *schemePathOut)
 
 } // namespace ThemeUtils
 
+namespace {
+
+void setGroupColors(QPalette &palette, QPalette::ColorGroup group,
+                    const QColor &window, const QColor &windowText,
+                    const QColor &base, const QColor &alternateBase,
+                    const QColor &button, const QColor &buttonText,
+                    const QColor &mid, const QColor &dark,
+                    const QColor &highlight, const QColor &highlightedText,
+                    const QColor &link, const QColor &placeholder)
+{
+    palette.setColor(group, QPalette::Window, window);
+    palette.setColor(group, QPalette::WindowText, windowText);
+    palette.setColor(group, QPalette::Base, base);
+    palette.setColor(group, QPalette::AlternateBase, alternateBase);
+    palette.setColor(group, QPalette::ToolTipBase, base);
+    palette.setColor(group, QPalette::ToolTipText, windowText);
+    palette.setColor(group, QPalette::Text, windowText);
+    palette.setColor(group, QPalette::Button, button);
+    palette.setColor(group, QPalette::ButtonText, buttonText);
+    palette.setColor(group, QPalette::BrightText, Qt::white);
+    palette.setColor(group, QPalette::Light, window.lighter(140));
+    palette.setColor(group, QPalette::Midlight, window.lighter(118));
+    palette.setColor(group, QPalette::Mid, mid);
+    palette.setColor(group, QPalette::Dark, dark);
+    palette.setColor(group, QPalette::Shadow, dark.darker(125));
+    palette.setColor(group, QPalette::Highlight, highlight);
+    palette.setColor(group, QPalette::HighlightedText, highlightedText);
+    palette.setColor(group, QPalette::Link, link);
+    palette.setColor(group, QPalette::LinkVisited, link.darker(115));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+    palette.setColor(group, QPalette::PlaceholderText, placeholder);
+#endif
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    palette.setColor(group, QPalette::Accent, highlight);
+#endif
+}
+
+QPalette createLightPalette()
+{
+    QPalette palette;
+    const QColor window(QStringLiteral("#edf3f9"));
+    const QColor windowText(QStringLiteral("#132033"));
+    const QColor base(QStringLiteral("#ffffff"));
+    const QColor alternateBase(QStringLiteral("#e3ebf4"));
+    const QColor button(QStringLiteral("#d9e4f0"));
+    const QColor buttonText(QStringLiteral("#132033"));
+    const QColor mid(QStringLiteral("#8aa0b7"));
+    const QColor dark(QStringLiteral("#4b6179"));
+    const QColor highlight(QStringLiteral("#1f6aa5"));
+    const QColor highlightedText(QStringLiteral("#ffffff"));
+    const QColor link(QStringLiteral("#0f5f9d"));
+    const QColor placeholder(QStringLiteral("#6d7f92"));
+
+    setGroupColors(palette, QPalette::Active, window, windowText, base, alternateBase,
+                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
+    setGroupColors(palette, QPalette::Inactive, window, windowText, base, alternateBase,
+                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
+    setGroupColors(palette, QPalette::Disabled, window.darker(103), mid, base.darker(102),
+                   alternateBase.darker(103), button.darker(102), mid, mid, dark,
+                   highlight.darker(105), highlightedText, link.darker(105), placeholder);
+    return palette;
+}
+
+QPalette createDarkPalette()
+{
+    QPalette palette;
+    const QColor window(QStringLiteral("#101722"));
+    const QColor windowText(QStringLiteral("#eef5ff"));
+    const QColor base(QStringLiteral("#152030"));
+    const QColor alternateBase(QStringLiteral("#1b2a3d"));
+    const QColor button(QStringLiteral("#223247"));
+    const QColor buttonText(QStringLiteral("#eef5ff"));
+    const QColor mid(QStringLiteral("#7187a1"));
+    const QColor dark(QStringLiteral("#07111d"));
+    const QColor highlight(QStringLiteral("#56adff"));
+    const QColor highlightedText(QStringLiteral("#081018"));
+    const QColor link(QStringLiteral("#7cc4ff"));
+    const QColor placeholder(QStringLiteral("#8fa3b9"));
+
+    setGroupColors(palette, QPalette::Active, window, windowText, base, alternateBase,
+                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
+    setGroupColors(palette, QPalette::Inactive, window, windowText, base, alternateBase,
+                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
+    setGroupColors(palette, QPalette::Disabled, window.lighter(112), mid, base.lighter(106),
+                   alternateBase.lighter(108), button.lighter(110), mid, mid, dark,
+                   highlight.darker(108), highlightedText, link.darker(105), placeholder);
+    return palette;
+}
+
+}
+
 ThemeManager::ThemeManager(QObject *parent)
     : QObject(parent)
 {
@@ -197,8 +288,18 @@ void ThemeManager::initialize()
         return;
     }
 
+    if (QStyle *fusionStyle = QStyleFactory::create(QStringLiteral("Fusion"))) {
+        QApplication::setStyle(fusionStyle);
+    }
+
     watcher_ = new QFileSystemWatcher(this);
     configRoot_ = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    if (!systemPaletteCaptured_) {
+        systemPalette_ = QApplication::palette();
+        systemPaletteCaptured_ = true;
+        systemPaletteIsDark_ = systemPalette_.color(QPalette::Window).lightnessF() < 0.5;
+    }
+    styleName_ = QApplication::style()->objectName();
     if (configRoot_.isEmpty()) {
         return;
     }
@@ -229,24 +330,54 @@ bool ThemeManager::reload()
 
     updateWatchPaths();
 
-    const QString styleValue = readConfigValue(QStringLiteral("style"));
-    if (!styleValue.isEmpty()) {
-        styleName_ = styleValue;
-        if (QStyle *style = QStyleFactory::create(styleValue)) {
-            QApplication::setStyle(style);
+    bool loaded = false;
+    if (themeMode_ == ThemeMode::System) {
+        if (systemPaletteCaptured_) {
+            QApplication::setPalette(systemPalette_);
+            loaded = true;
+        } else {
+            QApplication::setPalette(QPalette());
         }
+    } else {
+        const bool useSystemPalette = (themeMode_ == ThemeMode::Dark && systemPaletteIsDark_)
+            || (themeMode_ == ThemeMode::Light && !systemPaletteIsDark_);
+        QApplication::setPalette(useSystemPalette
+                                     ? systemPalette_
+                                     : (themeMode_ == ThemeMode::Dark ? createDarkPalette() : createLightPalette()));
+        loaded = true;
     }
 
-    QPalette palette;
-    QString schemePath;
-    const bool loaded = ThemeUtils::loadColorSchemePalette(palette, configDir_, &schemePath);
-    if (!schemePath.isEmpty()) {
-        schemePath_ = schemePath;
-    }
-    QApplication::setPalette(loaded ? palette : QPalette());
+    schemePath_.clear();
 
     emit themeChanged();
     return loaded;
+}
+
+void ThemeManager::setThemeMode(ThemeMode mode)
+{
+    if (themeMode_ == mode) {
+        return;
+    }
+    themeMode_ = mode;
+    reload();
+}
+
+ThemeManager::ThemeMode ThemeManager::themeMode() const
+{
+    return themeMode_;
+}
+
+ThemeManager::ThemeMode ThemeManager::effectiveThemeMode() const
+{
+    if (themeMode_ == ThemeMode::System) {
+        return systemPaletteIsDark_ ? ThemeMode::Dark : ThemeMode::Light;
+    }
+    return themeMode_;
+}
+
+QString ThemeManager::themeModeKey() const
+{
+    return themeModeToKey(themeMode_);
 }
 
 QString ThemeManager::currentSchemePath() const
@@ -256,15 +387,59 @@ QString ThemeManager::currentSchemePath() const
 
 QString ThemeManager::currentSchemeName() const
 {
+    if (themeMode_ == ThemeMode::System) {
+        return systemPaletteIsDark_ ? tr("系统默认深色") : tr("系统默认浅色");
+    }
+    if (themeMode_ == ThemeMode::Light) {
+        return (!systemPaletteIsDark_ && systemPaletteCaptured_) ? tr("系统默认浅色") : tr("优化浅色");
+    }
+    if (themeMode_ == ThemeMode::Dark) {
+        return (systemPaletteIsDark_ && systemPaletteCaptured_) ? tr("系统默认深色") : tr("优化深色");
+    }
     return schemePath_.isEmpty() ? QString() : QFileInfo(schemePath_).fileName();
 }
 
 QString ThemeManager::currentStyleName() const
 {
-    if (!styleName_.isEmpty()) {
-        return styleName_;
-    }
     return QApplication::style()->objectName();
+}
+
+ThemeManager::ThemeMode ThemeManager::themeModeFromKey(const QString &key)
+{
+    const QString normalized = key.trimmed().toLower();
+    if (normalized == QStringLiteral("light")) {
+        return ThemeMode::Light;
+    }
+    if (normalized == QStringLiteral("dark")) {
+        return ThemeMode::Dark;
+    }
+    return ThemeMode::System;
+}
+
+QString ThemeManager::themeModeToKey(ThemeMode mode)
+{
+    switch (mode) {
+    case ThemeMode::Light:
+        return QStringLiteral("light");
+    case ThemeMode::Dark:
+        return QStringLiteral("dark");
+    case ThemeMode::System:
+    default:
+        return QStringLiteral("system");
+    }
+}
+
+QString ThemeManager::themeModeDisplayName(ThemeMode mode)
+{
+    switch (mode) {
+    case ThemeMode::Light:
+        return QObject::tr("浅色");
+    case ThemeMode::Dark:
+        return QObject::tr("深色");
+    case ThemeMode::System:
+    default:
+        return QObject::tr("跟随系统");
+    }
 }
 
 void ThemeManager::handleConfigChanged(const QString &path)

@@ -23,9 +23,9 @@
 #include "pages/realtimepagewidget.h"
 #include "pages/settingspagewidget.h"
 #include "pages/usermanagementpagewidget.h"
- #include "repositories/alarmrepository.h"
- #include "repositories/samplerepository.h"
- #include "repositories/userrepository.h"
+#include "repositories/alarmrepository.h"
+#include "repositories/samplerepository.h"
+#include "repositories/userrepository.h"
 #include "services/alarmservice.h"
 #include "services/csvexporter.h"
 #include "themeutils.h"
@@ -84,6 +84,7 @@ MainWindow::MainWindow(DatabaseManager *db, ThemeManager *themeManager, const Us
     connect(exportPage_, &ExportPageWidget::exportStatsRequested, this, &MainWindow::handleExportStats);
     connect(exportPage_, &ExportPageWidget::exportAlarmsRequested, this, &MainWindow::handleExportAlarms);
     connect(settingsPage_, &SettingsPageWidget::refreshIntervalChanged, this, &MainWindow::handleRefreshIntervalChanged);
+    connect(settingsPage_, &SettingsPageWidget::themeModeChanged, this, &MainWindow::handleThemeModeChanged);
     connect(settingsPage_, &SettingsPageWidget::applyRequested, this, &MainWindow::handleApplySettings);
     connect(settingsPage_, &SettingsPageWidget::backupRequested, this, &MainWindow::handleBackupDatabase);
     connect(settingsPage_, &SettingsPageWidget::restoreRequested, this, &MainWindow::handleRestoreDatabase);
@@ -102,6 +103,7 @@ MainWindow::MainWindow(DatabaseManager *db, ThemeManager *themeManager, const Us
     }
 
     auto *fileMenu = menuBar()->addMenu(tr("文件"));
+    fileMenu->addAction(tr("注销"), this, &MainWindow::handleLogout);
     fileMenu->addAction(tr("退出"), this, &QWidget::close);
 
     auto *helpMenu = menuBar()->addMenu(tr("帮助"));
@@ -126,6 +128,7 @@ MainWindow::MainWindow(DatabaseManager *db, ThemeManager *themeManager, const Us
     }
 
     handleHistoryQuery(historyPage_->startDateTime(), historyPage_->endDateTime());
+    alarmPage_->resetTimeRangeToRecentWindow();
     handleRefreshAlarms(alarmPage_->startDateTime(), alarmPage_->endDateTime());
 
     dataTimer_->start(refreshIntervalMs_);
@@ -150,7 +153,12 @@ void MainWindow::handleDataTick()
     realtimePage_->updateSample(sample);
     realtimePage_->addSample(sample);
 
-    showAlarmEvents(alarmService_->evaluateSample(sample, alarmPage_->alarmSettings()));
+    const QList<AlarmEvent> events = alarmService_->evaluateSample(sample, alarmPage_->alarmSettings());
+    showAlarmEvents(events);
+    if (!events.isEmpty()) {
+        alarmPage_->followEndTimeToNow();
+        handleRefreshAlarms(alarmPage_->startDateTime(), alarmPage_->endDateTime());
+    }
     lastSample_ = sample;
 }
 
@@ -288,6 +296,7 @@ void MainWindow::handleExportAlarms(const QDateTime &start, const QDateTime &end
 void MainWindow::handleApplySettings()
 {
     saveSettings();
+    updateThemeStatus();
     QMessageBox::information(this, tr("提示"), tr("设置已应用"));
 }
 
@@ -374,9 +383,33 @@ void MainWindow::handleRestoreDatabase()
     QMessageBox::information(this, tr("成功"), tr("数据库已恢复"));
 }
 
+void MainWindow::handleLogout()
+{
+    if (QMessageBox::question(this, tr("确认注销"), tr("确定要注销当前账号并返回登录界面吗？")) != QMessageBox::Yes) {
+        return;
+    }
+
+    if (dataTimer_) {
+        dataTimer_->stop();
+    }
+
+    emit logoutRequested();
+    close();
+}
+
 void MainWindow::handleRefreshIntervalChanged(int ms)
 {
     setRefreshInterval(ms);
+    saveSettings();
+}
+
+void MainWindow::handleThemeModeChanged(const QString &modeKey)
+{
+    if (!themeManager_) {
+        return;
+    }
+
+    themeManager_->setThemeMode(ThemeManager::themeModeFromKey(modeKey));
     saveSettings();
 }
 
@@ -384,7 +417,7 @@ void MainWindow::handleThemeUpdated()
 {
     UiStyles::applyMainWindowStyle(this);
     UiStyles::applyTabStyle(tabs_);
-    UiStyles::applyPageStyle(realtimePage_);
+    realtimePage_->refreshThemeStyles();
     UiStyles::applyPageStyle(historyPage_);
     UiStyles::applyPageStyle(alarmPage_);
     UiStyles::applyPageStyle(exportPage_);
@@ -519,23 +552,29 @@ void MainWindow::updateThemeStatus()
         return;
     }
     if (!themeManager_) {
-        settingsPage_->setThemeStatus(tr("跟随系统主题 (qt6ct)"));
+        settingsPage_->setThemeMode(QStringLiteral("system"));
+        settingsPage_->setThemeStatus(tr("跟随系统默认主题"));
         return;
     }
 
+    settingsPage_->setThemeMode(themeManager_->themeModeKey());
+    const QString modeName = ThemeManager::themeModeDisplayName(themeManager_->themeMode());
     const QString schemeName = themeManager_->currentSchemeName().isEmpty()
         ? tr("未检测到")
         : themeManager_->currentSchemeName();
     const QString styleName = themeManager_->currentStyleName().isEmpty()
         ? QApplication::style()->objectName()
         : themeManager_->currentStyleName();
-    settingsPage_->setThemeStatus(tr("跟随系统主题 (qt6ct)，样式: %1，配色: %2").arg(styleName, schemeName));
+    const QString statusText = tr("%1，当前效果: %2，样式: %3")
+        .arg(modeName, schemeName, styleName);
+    settingsPage_->setThemeStatus(statusText);
 }
 
 void MainWindow::loadSettings()
 {
     QSettings settings;
     refreshIntervalMs_ = settings.value(QStringLiteral("refresh_interval_ms"), 1000).toInt();
+    const QString themeModeKey = settings.value(QStringLiteral("theme_mode"), QStringLiteral("system")).toString();
 
     AlarmSettings alarmSettings;
     alarmSettings.temperatureThreshold = settings.value(QStringLiteral("thresholds/temperature"), 35.0).toDouble();
@@ -550,6 +589,10 @@ void MainWindow::loadSettings()
     realtimePage_->setSimulationRunning(simulationRunning_);
     settingsPage_->setRefreshInterval(refreshIntervalMs_);
     settingsPage_->setSoundMode(settings.value(QStringLiteral("alarm_sound"), QStringLiteral("beep")).toString());
+    settingsPage_->setThemeMode(themeModeKey);
+    if (themeManager_) {
+        themeManager_->setThemeMode(ThemeManager::themeModeFromKey(themeModeKey));
+    }
     if (db_) {
         settingsPage_->setDatabasePath(db_->databasePath());
     }
@@ -562,6 +605,7 @@ void MainWindow::saveSettings()
     QSettings settings;
     settings.setValue(QStringLiteral("refresh_interval_ms"), refreshIntervalMs_);
     settings.setValue(QStringLiteral("alarm_sound"), settingsPage_->soundMode());
+    settings.setValue(QStringLiteral("theme_mode"), settingsPage_->themeMode());
     settings.setValue(QStringLiteral("thresholds/temperature"), alarmSettings.temperatureThreshold);
     settings.setValue(QStringLiteral("thresholds/humidity"), alarmSettings.humidityThreshold);
     settings.setValue(QStringLiteral("thresholds/pm25"), alarmSettings.pm25Threshold);

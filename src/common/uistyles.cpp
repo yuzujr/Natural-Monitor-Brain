@@ -3,6 +3,8 @@
 #include <QApplication>
 #include <QColor>
 #include <QPalette>
+#include <QPushButton>
+#include <QStyle>
 #include <QTabWidget>
 #include <QWidget>
 
@@ -63,16 +65,177 @@ QColor accentPressedColor()
     return isDarkTheme() ? accentColor().darker(118) : accentColor().darker(115);
 }
 
+QColor secondaryButtonColor()
+{
+    return isDarkTheme() ? panelColor().lighter(108) : panelColor().darker(102);
+}
+
+QColor secondaryButtonHoverColor()
+{
+    return isDarkTheme() ? secondaryButtonColor().lighter(112) : secondaryButtonColor().darker(106);
+}
+
+QColor secondaryButtonPressedColor()
+{
+    return isDarkTheme() ? secondaryButtonColor().darker(112) : secondaryButtonColor().darker(112);
+}
+
+QColor dangerColor()
+{
+    return isDarkTheme() ? QColor(QStringLiteral("#cc6b74")) : QColor(QStringLiteral("#ba3b46"));
+}
+
+QColor dangerHoverColor()
+{
+    return isDarkTheme() ? dangerColor().lighter(110) : dangerColor().lighter(108);
+}
+
+QColor dangerPressedColor()
+{
+    return isDarkTheme() ? dangerColor().darker(116) : dangerColor().darker(112);
+}
+
 QColor subtleTextColor()
 {
     const QPalette palette = QApplication::palette();
-    return isDarkTheme() ? palette.color(QPalette::Text).lighter(135)
-                         : palette.color(QPalette::Mid).darker(130);
+    QColor color = isDarkTheme() ? palette.color(QPalette::Text).lighter(125)
+                                 : palette.color(QPalette::Mid).darker(150);
+    if (isDarkTheme() && color.lightnessF() < 0.68) {
+        color = color.lighter(125);
+    }
+    if (!isDarkTheme() && color.lightnessF() > 0.48) {
+        color = color.darker(145);
+    }
+    return color;
+}
+
+QColor primaryTextColor()
+{
+    QColor color = QApplication::palette().color(QPalette::WindowText);
+    if (isDarkTheme() && color.lightnessF() < 0.82) {
+        color = color.lighter(125);
+    }
+    if (!isDarkTheme() && color.lightnessF() > 0.25) {
+        color = color.darker(170);
+    }
+    return color;
+}
+
+QColor cardValueTextColor()
+{
+    QColor color = primaryTextColor();
+    if (isDarkTheme()) {
+        return color.lighter(108);
+    }
+    return color.darker(105);
+}
+
+QColor inputTextColor()
+{
+    QColor color = QApplication::palette().color(QPalette::Text);
+    if (isDarkTheme() && color.lightnessF() < 0.8) {
+        color = color.lighter(122);
+    }
+    if (!isDarkTheme() && color.lightnessF() > 0.28) {
+        color = color.darker(165);
+    }
+    return color;
 }
 
 QString commonFontFamily()
 {
     return QStringLiteral("\"Microsoft YaHei UI\", \"Segoe UI\", \"Noto Sans CJK SC\"");
+}
+
+QString buttonRules()
+{
+    return QString(
+        "QPushButton {"
+        "  background: %1;"
+        "  color: %2;"
+        "  border: none;"
+        "  border-radius: 10px;"
+        "  padding: 8px 16px;"
+        "  min-height: 18px;"
+        "  font-weight: 600;"
+        "}"
+        "QPushButton:hover { background: %3; }"
+        "QPushButton:pressed { background: %4; }"
+        "QPushButton[variant=\"secondary\"] { background: %5; color: %6; border: 1px solid %7; }"
+        "QPushButton[variant=\"secondary\"]:hover { background: %8; }"
+        "QPushButton[variant=\"secondary\"]:pressed { background: %9; }"
+        "QPushButton[variant=\"danger\"] { background: %10; color: white; }"
+        "QPushButton[variant=\"danger\"]:hover { background: %11; }"
+        "QPushButton[variant=\"danger\"]:pressed { background: %12; }"
+    )
+        .arg(colorToString(accentColor()))
+        .arg(QStringLiteral("white"))
+        .arg(colorToString(accentHoverColor()))
+        .arg(colorToString(accentPressedColor()))
+        .arg(colorToString(secondaryButtonColor()))
+            .arg(colorToString(primaryTextColor()))
+        .arg(colorToString(borderColor()))
+        .arg(colorToString(secondaryButtonHoverColor()))
+        .arg(colorToString(secondaryButtonPressedColor()))
+        .arg(colorToString(dangerColor()))
+        .arg(colorToString(dangerHoverColor()))
+        .arg(colorToString(dangerPressedColor()));
+}
+
+QString calendarRules()
+{
+    return QString(
+        "QDateTimeEdit::drop-down, QComboBox::drop-down {"
+        "  border: none;"
+        "  width: 22px;"
+        "  background: transparent;"
+        "}"
+        "QDateTimeEdit::down-arrow, QComboBox::down-arrow {"
+        "  image: none;"
+        "  border-left: 5px solid transparent;"
+        "  border-right: 5px solid transparent;"
+        "  border-top: 6px solid %1;"
+        "  width: 0px;"
+        "  height: 0px;"
+        "}"
+        "QCalendarWidget QWidget {"
+        "  background: %2;"
+        "  color: %3;"
+        "  alternate-background-color: %4;"
+        "}"
+        "QCalendarWidget QAbstractItemView:enabled {"
+        "  background: %2;"
+        "  color: %3;"
+        "  selection-background-color: %5;"
+        "  selection-color: %6;"
+        "}"
+        "QCalendarWidget QToolButton {"
+        "  background: %4;"
+        "  color: %3;"
+        "  border: 1px solid %7;"
+        "  border-radius: 8px;"
+        "  padding: 4px 8px;"
+        "}"
+        "QCalendarWidget QToolButton:hover { background: %8; }"
+        "QCalendarWidget QSpinBox {"
+        "  background: %2;"
+        "  color: %3;"
+        "  border: 1px solid %7;"
+        "  border-radius: 6px;"
+        "  padding: 2px 6px;"
+        "}"
+        "QCalendarWidget QMenu { background: %2; color: %3; }"
+        "QCalendarWidget QAbstractItemView:disabled { color: %9; }"
+    )
+        .arg(colorToString(primaryTextColor()))
+        .arg(colorToString(panelColor()))
+        .arg(colorToString(primaryTextColor()))
+        .arg(colorToString(alternatePanelColor()))
+        .arg(colorToString(accentColor()))
+        .arg(isDarkTheme() ? QStringLiteral("#081018") : QStringLiteral("#ffffff"))
+        .arg(colorToString(borderColor()))
+        .arg(colorToString(secondaryButtonHoverColor()))
+        .arg(colorToString(subtleTextColor()));
 }
 
 }
@@ -85,7 +248,7 @@ void applyDialogStyle(QWidget *widget)
 
     const QColor window = QApplication::palette().color(QPalette::Window);
     const QColor base = QApplication::palette().color(QPalette::Base);
-    const QColor text = QApplication::palette().color(QPalette::WindowText);
+    const QColor text = primaryTextColor();
     const QColor tabIdle = alternatePanelColor();
     const QColor tabActive = panelColor();
     const QColor border = borderColor();
@@ -122,15 +285,8 @@ void applyDialogStyle(QWidget *widget)
         "  border-radius: 10px;"
         "  padding: 6px 10px;"
         "}"
-        "QPushButton {"
-        "  background: %9;"
-        "  color: white;"
-        "  border: none;"
-        "  border-radius: 10px;"
-        "  padding: 8px 16px;"
-        "}"
-        "QPushButton:hover { background: %11; }"
-        "QPushButton:pressed { background: %12; }"
+        "%11"
+        "%12"
     )
         .arg(colorToString(window.lighter(isDarkTheme() ? 112 : 102)))
         .arg(colorToString(base))
@@ -142,8 +298,8 @@ void applyDialogStyle(QWidget *widget)
         .arg(colorToString(tabActive))
         .arg(colorToString(accentColor()))
         .arg(colorToString(base))
-        .arg(colorToString(accentHoverColor()))
-        .arg(colorToString(accentPressedColor())));
+        .arg(buttonRules())
+        .arg(calendarRules()));
 }
 
 void applyPageStyle(QWidget *widget)
@@ -152,10 +308,8 @@ void applyPageStyle(QWidget *widget)
         return;
     }
 
-    const QColor text = QApplication::palette().color(QPalette::WindowText);
+    const QColor text = primaryTextColor();
     const QColor base = QApplication::palette().color(QPalette::Base);
-    const QColor buttonText = Qt::white;
-
     widget->setStyleSheet(QString(
         "QWidget { background: transparent; color: %1; font-family: %2; }"
         "QGroupBox {"
@@ -173,35 +327,26 @@ void applyPageStyle(QWidget *widget)
         "  padding: 0 8px;"
         "  color: %5;"
         "}"
-        "QPushButton {"
-        "  background: %6;"
-        "  color: %7;"
-        "  border: none;"
-        "  border-radius: 10px;"
-        "  padding: 8px 16px;"
-        "  min-height: 18px;"
-        "  font-weight: 600;"
-        "}"
-        "QPushButton:hover { background: %8; }"
-        "QPushButton:pressed { background: %9; }"
+        "%6"
         "QLineEdit, QComboBox, QDateTimeEdit, QSpinBox, QDoubleSpinBox {"
-        "  background: %10;"
-        "  color: %1;"
+            "  background: %8;"
+        "  color: %7;"
         "  border: 1px solid %4;"
         "  border-radius: 10px;"
         "  padding: 6px 10px;"
         "  min-height: 18px;"
         "}"
+        "QLineEdit[readOnly=\"true\"] { color: %5; }"
         "QTableWidget {"
-        "  background: %10;"
+            "  background: %8;"
         "  color: %1;"
         "  border: 1px solid %4;"
         "  border-radius: 14px;"
         "  gridline-color: %4;"
-        "  alternate-background-color: %11;"
+            "  alternate-background-color: %9;"
         "}"
         "QHeaderView::section {"
-        "  background: %11;"
+            "  background: %9;"
         "  color: %1;"
         "  border: none;"
         "  border-bottom: 1px solid %4;"
@@ -209,18 +354,19 @@ void applyPageStyle(QWidget *widget)
         "  font-weight: 600;"
         "}"
         "QCheckBox, QLabel { color: %1; }"
+        "QAbstractItemView::item:selected { background: palette(highlight); color: palette(highlightedText); }"
+        "%10"
     )
         .arg(colorToString(text))
         .arg(commonFontFamily())
         .arg(colorToString(panelColor()))
         .arg(colorToString(borderColor()))
         .arg(colorToString(subtleTextColor()))
-        .arg(colorToString(accentColor()))
-        .arg(colorToString(buttonText))
-        .arg(colorToString(accentHoverColor()))
-        .arg(colorToString(accentPressedColor()))
+        .arg(buttonRules())
+        .arg(colorToString(inputTextColor()))
         .arg(colorToString(base))
-        .arg(colorToString(alternatePanelColor())));
+        .arg(colorToString(alternatePanelColor()))
+        .arg(calendarRules()));
 }
 
 void applyMainWindowStyle(QWidget *widget)
@@ -230,7 +376,7 @@ void applyMainWindowStyle(QWidget *widget)
     }
 
     const QColor window = QApplication::palette().color(QPalette::Window);
-    const QColor text = QApplication::palette().color(QPalette::WindowText);
+    const QColor text = primaryTextColor();
 
     widget->setStyleSheet(QString(
         "QMainWindow {"
@@ -280,39 +426,55 @@ void applyTabStyle(QTabWidget *tabs)
         "}"
     )
         .arg(colorToString(alternatePanelColor()))
-        .arg(colorToString(QApplication::palette().color(QPalette::WindowText)))
+        .arg(colorToString(primaryTextColor()))
         .arg(colorToString(borderColor()))
         .arg(commonFontFamily())
         .arg(colorToString(panelColor()))
         .arg(colorToString(accentColor())));
 }
 
+void applyButtonVariant(QPushButton *button, const QString &variant)
+{
+    if (!button) {
+        return;
+    }
+
+    button->setProperty("variant", variant);
+    button->style()->unpolish(button);
+    button->style()->polish(button);
+    button->update();
+}
+
 QString titleTextStyle()
 {
-    return QStringLiteral("font-size: 26px; font-weight: 700; color: palette(windowText);");
+    return QString("font-size: 26px; font-weight: 700; color: %1;")
+        .arg(colorToString(primaryTextColor()));
 }
 
 QString secondaryTextStyle()
 {
-    return QStringLiteral("color: palette(mid); font-size: 13px; padding: 2px 4px 6px 4px;");
+    return QString("color: %1; font-size: 13px; padding: 2px 4px 6px 4px;")
+        .arg(colorToString(subtleTextColor()));
 }
 
 QString metricTitleStyle()
 {
-    return QStringLiteral("color: palette(mid); font-size: 12px; font-weight: 600;");
+    return QString("color: %1; font-size: 12px; font-weight: 600;")
+        .arg(colorToString(subtleTextColor()));
 }
 
 QString metricValueStyle()
 {
-    return QStringLiteral("font-size: 20px; font-weight: 700; color: palette(windowText);");
+    return QString("font-size: 20px; font-weight: 700; color: %1;")
+        .arg(colorToString(cardValueTextColor()));
 }
 
 QString progressBarStyle(const QString &accentColor)
 {
-    return QStringLiteral(
-        "QProgressBar { background: palette(alternate-base); border: none; border-radius: 6px; min-height: 10px; }"
+    return QString(
+        "QProgressBar { background: %2; border: none; border-radius: 6px; min-height: 10px; }"
         "QProgressBar::chunk { background: %1; border-radius: 6px; }"
-    ).arg(accentColor);
+    ).arg(accentColor, colorToString(alternatePanelColor()));
 }
 
 QString metricCardStyle(const QString &accentColor)
@@ -329,7 +491,7 @@ QString metricCardStyle(const QString &accentColor)
         .arg(colorToString(panelColor()))
         .arg(colorToString(borderColor()))
         .arg(accentColor)
-        .arg(colorToString(QApplication::palette().color(QPalette::WindowText)));
+        .arg(colorToString(primaryTextColor()));
 }
 
 } // namespace UiStyles

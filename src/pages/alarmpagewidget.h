@@ -23,6 +23,8 @@ public:
     AlarmSettings alarmSettings() const;
     QDateTime startDateTime() const;
     QDateTime endDateTime() const;
+    void resetTimeRangeToRecentWindow();
+    void followEndTimeToNow();
     void setAlarmSettings(const AlarmSettings &settings);
     void setAlarmRecords(const QList<AlarmRecord> &records);
 

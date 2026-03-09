@@ -42,6 +42,7 @@ ExportPageWidget::ExportPageWidget(QWidget *parent)
     co2Check_->setChecked(true);
 
     auto *exportHistoryButton = new QPushButton(tr("导出CSV"), historyGroup);
+    UiStyles::applyButtonVariant(exportHistoryButton, QStringLiteral("primary"));
     connect(exportHistoryButton, &QPushButton::clicked, this, [this]() {
         emit exportHistoryRequested(historyStartEdit_->dateTime(), historyEndEdit_->dateTime(), currentSelection());
     });
@@ -68,6 +69,7 @@ ExportPageWidget::ExportPageWidget(QWidget *parent)
     auto *statsGroup = new QGroupBox(tr("导出统计结果"), this);
     auto *statsLayout = new QHBoxLayout(statsGroup);
     auto *exportStatsButton = new QPushButton(tr("导出统计CSV"), statsGroup);
+    UiStyles::applyButtonVariant(exportStatsButton, QStringLiteral("secondary"));
     connect(exportStatsButton, &QPushButton::clicked, this, [this]() {
         emit exportStatsRequested(historyStartEdit_->dateTime(), historyEndEdit_->dateTime());
     });
@@ -86,6 +88,7 @@ ExportPageWidget::ExportPageWidget(QWidget *parent)
     alarmEndEdit_->setCalendarPopup(true);
 
     auto *exportAlarmButton = new QPushButton(tr("导出CSV"), alarmGroup);
+    UiStyles::applyButtonVariant(exportAlarmButton, QStringLiteral("primary"));
     connect(exportAlarmButton, &QPushButton::clicked, this, [this]() {
         emit exportAlarmsRequested(alarmStartEdit_->dateTime(), alarmEndEdit_->dateTime());
     });

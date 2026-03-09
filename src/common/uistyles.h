@@ -4,6 +4,7 @@
 #include <QString>
 
 class QTabWidget;
+class QPushButton;
 class QWidget;
 
 namespace UiStyles {
@@ -11,6 +12,7 @@ void applyDialogStyle(QWidget *widget);
 void applyPageStyle(QWidget *widget);
 void applyMainWindowStyle(QWidget *widget);
 void applyTabStyle(QTabWidget *tabs);
+void applyButtonVariant(QPushButton *button, const QString &variant);
 QString titleTextStyle();
 QString secondaryTextStyle();
 QString metricTitleStyle();

@@ -37,9 +37,13 @@ UserManagementPageWidget::UserManagementPageWidget(QWidget *parent)
     newUserRole_->addItem(tr("普通用户"), QStringLiteral("user"));
     newUserRole_->addItem(tr("管理员"), QStringLiteral("admin"));
     auto *addButton = new QPushButton(tr("添加"), addGroup);
+    UiStyles::applyButtonVariant(addButton, QStringLiteral("primary"));
     connect(addButton, &QPushButton::clicked, this, [this]() {
         emit addUserRequested(newUserName_->text().trimmed(), newUserPass_->text(), newUserRole_->currentData().toString());
     });
+
+    newUserName_->setPlaceholderText(tr("输入用户名"));
+    newUserPass_->setPlaceholderText(tr("输入初始密码"));
 
     addLayout->addWidget(new QLabel(tr("用户名"), addGroup), 0, 0);
     addLayout->addWidget(newUserName_, 0, 1);
@@ -64,6 +68,9 @@ UserManagementPageWidget::UserManagementPageWidget(QWidget *parent)
     auto *deleteButton = new QPushButton(tr("删除用户"), this);
     auto *toggleRoleButton = new QPushButton(tr("切换权限"), this);
     auto *resetPasswordButton = new QPushButton(tr("重置密码"), this);
+    UiStyles::applyButtonVariant(deleteButton, QStringLiteral("danger"));
+    UiStyles::applyButtonVariant(toggleRoleButton, QStringLiteral("secondary"));
+    UiStyles::applyButtonVariant(resetPasswordButton, QStringLiteral("secondary"));
 
     connect(deleteButton, &QPushButton::clicked, this, [this]() {
         const int userId = selectedUserId();

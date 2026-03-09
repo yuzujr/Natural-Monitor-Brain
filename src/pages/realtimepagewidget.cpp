@@ -26,22 +26,19 @@ RealtimePageWidget::RealtimePageWidget(QWidget *parent)
     auto *layout = new QVBoxLayout(this);
     layout->setSpacing(14);
 
-    auto *headerCard = new QFrame(this);
-    headerCard->setStyleSheet(UiStyles::metricCardStyle(QStringLiteral("#2e86c1")));
-    auto *headerLayout = new QVBoxLayout(headerCard);
-    auto *titleLabel = new QLabel(tr("环境态势总览"), headerCard);
-    titleLabel->setStyleSheet(UiStyles::titleTextStyle());
-    auto *subtitleLabel = new QLabel(tr("实时监控温度、湿度、PM2.5 与 CO2 变化，支持快速切换刷新节奏。"), headerCard);
-    subtitleLabel->setStyleSheet(UiStyles::secondaryTextStyle());
-    headerLayout->addWidget(titleLabel);
-    headerLayout->addWidget(subtitleLabel);
-    layout->addWidget(headerCard);
+    headerCard_ = new QFrame(this);
+    auto *headerLayout = new QVBoxLayout(headerCard_);
+    titleLabel_ = new QLabel(tr("环境态势总览"), headerCard_);
+    subtitleLabel_ = new QLabel(tr("实时监控温度、湿度、PM2.5 与 CO2 变化，支持快速切换刷新节奏。"), headerCard_);
+    headerLayout->addWidget(titleLabel_);
+    headerLayout->addWidget(subtitleLabel_);
+    layout->addWidget(headerCard_);
 
     auto *toolbar = new QHBoxLayout();
-    auto *sourceLabel = new QLabel(tr("数据来源: 模拟传感器"), this);
-    sourceLabel->setStyleSheet(UiStyles::secondaryTextStyle());
+    sourceLabel_ = new QLabel(tr("数据来源: 模拟传感器"), this);
 
     toggleSimButton_ = new QPushButton(tr("暂停采集"), this);
+    UiStyles::applyButtonVariant(toggleSimButton_, QStringLiteral("secondary"));
     connect(toggleSimButton_, &QPushButton::clicked, this, &RealtimePageWidget::simulationToggleRequested);
 
     intervalCombo_ = new QComboBox(this);
@@ -53,7 +50,7 @@ RealtimePageWidget::RealtimePageWidget(QWidget *parent)
                 emit refreshIntervalChanged(intervalCombo_->itemData(index).toInt());
             });
 
-    toolbar->addWidget(sourceLabel);
+    toolbar->addWidget(sourceLabel_);
     toolbar->addStretch();
     toolbar->addWidget(new QLabel(tr("刷新频率"), this));
     toolbar->addWidget(intervalCombo_);
@@ -66,18 +63,15 @@ RealtimePageWidget::RealtimePageWidget(QWidget *parent)
     grid->setVerticalSpacing(14);
 
     auto createCard = [&](int row, int column, const QString &name, const QString &accent,
-                          QLabel *&valueLabel, QProgressBar *&bar, int min, int max) {
-        auto *card = new QFrame(dataGroup);
-        card->setStyleSheet(UiStyles::metricCardStyle(accent));
+                          QFrame *&card, QLabel *&nameLabel, QLabel *&valueLabel,
+                          QProgressBar *&bar, int min, int max) {
+        card = new QFrame(dataGroup);
         auto *cardLayout = new QVBoxLayout(card);
-        auto *nameLabel = new QLabel(name, card);
-        nameLabel->setStyleSheet(UiStyles::metricTitleStyle());
+        nameLabel = new QLabel(name, card);
         valueLabel = new QLabel("--", card);
-        valueLabel->setStyleSheet(UiStyles::metricValueStyle());
         bar = new QProgressBar(card);
         bar->setRange(min, max);
         bar->setTextVisible(false);
-        bar->setStyleSheet(UiStyles::progressBarStyle(accent));
 
         cardLayout->addWidget(nameLabel);
         cardLayout->addWidget(valueLabel);
@@ -85,10 +79,10 @@ RealtimePageWidget::RealtimePageWidget(QWidget *parent)
         grid->addWidget(card, row, column);
     };
 
-    createCard(0, 0, tr("温度 (C)"), QStringLiteral("#ef6f6c"), tempValue_, tempBar_, 0, 400);
-    createCard(0, 1, tr("湿度 (%)"), QStringLiteral("#3f88c5"), humValue_, humBar_, 0, 100);
-    createCard(1, 0, tr("PM2.5 (ug/m3)"), QStringLiteral("#f4a259"), pmValue_, pmBar_, 0, 200);
-    createCard(1, 1, tr("CO2 (ppm)"), QStringLiteral("#5bba6f"), co2Value_, co2Bar_, 300, 2000);
+    createCard(0, 0, tr("温度 (C)"), QStringLiteral("#ef6f6c"), tempCard_, tempTitleLabel_, tempValue_, tempBar_, 0, 400);
+    createCard(0, 1, tr("湿度 (%)"), QStringLiteral("#3f88c5"), humCard_, humTitleLabel_, humValue_, humBar_, 0, 100);
+    createCard(1, 0, tr("PM2.5 (ug/m3)"), QStringLiteral("#f4a259"), pmCard_, pmTitleLabel_, pmValue_, pmBar_, 0, 200);
+    createCard(1, 1, tr("CO2 (ppm)"), QStringLiteral("#5bba6f"), co2Card_, co2TitleLabel_, co2Value_, co2Bar_, 300, 2000);
 
     grid->setColumnStretch(0, 1);
     grid->setColumnStretch(1, 1);
@@ -102,10 +96,39 @@ RealtimePageWidget::RealtimePageWidget(QWidget *parent)
     layout->addWidget(chartGroup);
 
     lastUpdateLabel_ = new QLabel(tr("最近更新时间: --"), this);
-    lastUpdateLabel_->setStyleSheet(UiStyles::secondaryTextStyle());
     layout->addWidget(lastUpdateLabel_);
 
     layout->addStretch();
+
+    refreshThemeStyles();
+}
+
+void RealtimePageWidget::refreshThemeStyles()
+{
+    UiStyles::applyPageStyle(this);
+    headerCard_->setStyleSheet(UiStyles::metricCardStyle(QStringLiteral("#2e86c1")));
+    titleLabel_->setStyleSheet(UiStyles::titleTextStyle());
+    subtitleLabel_->setStyleSheet(UiStyles::secondaryTextStyle());
+    sourceLabel_->setStyleSheet(UiStyles::secondaryTextStyle());
+    lastUpdateLabel_->setStyleSheet(UiStyles::secondaryTextStyle());
+
+    applyMetricCardStyle(tempCard_, tempTitleLabel_, tempValue_, tempBar_, QStringLiteral("#ef6f6c"));
+    applyMetricCardStyle(humCard_, humTitleLabel_, humValue_, humBar_, QStringLiteral("#3f88c5"));
+    applyMetricCardStyle(pmCard_, pmTitleLabel_, pmValue_, pmBar_, QStringLiteral("#f4a259"));
+    applyMetricCardStyle(co2Card_, co2TitleLabel_, co2Value_, co2Bar_, QStringLiteral("#5bba6f"));
+}
+
+void RealtimePageWidget::applyMetricCardStyle(QFrame *card, QLabel *nameLabel, QLabel *valueLabel,
+                                              QProgressBar *bar, const QString &accentColor)
+{
+    if (!card || !nameLabel || !valueLabel || !bar) {
+        return;
+    }
+
+    card->setStyleSheet(UiStyles::metricCardStyle(accentColor));
+    nameLabel->setStyleSheet(UiStyles::metricTitleStyle());
+    valueLabel->setStyleSheet(UiStyles::metricValueStyle());
+    bar->setStyleSheet(UiStyles::progressBarStyle(accentColor));
 }
 
 void RealtimePageWidget::setRefreshInterval(int ms)

@@ -20,6 +20,8 @@ AlarmPageWidget::AlarmPageWidget(QWidget *parent)
 {
     UiStyles::applyPageStyle(this);
 
+    const QDateTime now = QDateTime::currentDateTime();
+
     auto *layout = new QVBoxLayout(this);
     layout->setSpacing(14);
 
@@ -55,6 +57,7 @@ AlarmPageWidget::AlarmPageWidget(QWidget *parent)
     thresholdLayout->addWidget(cooldownSpin_, 1, 3);
 
     auto *saveButton = new QPushButton(tr("保存设置"), thresholdGroup);
+    UiStyles::applyButtonVariant(saveButton, QStringLiteral("primary"));
     connect(saveButton, &QPushButton::clicked, this, &AlarmPageWidget::saveThresholdsRequested);
     thresholdLayout->addWidget(saveButton, 2, 2, 1, 2);
 
@@ -64,8 +67,8 @@ AlarmPageWidget::AlarmPageWidget(QWidget *parent)
     auto *logLayout = new QVBoxLayout(logGroup);
 
     auto *filterLayout = new QHBoxLayout();
-    startEdit_ = new QDateTimeEdit(QDateTime::currentDateTime().addSecs(-3600), logGroup);
-    endEdit_ = new QDateTimeEdit(QDateTime::currentDateTime(), logGroup);
+    startEdit_ = new QDateTimeEdit(now.addSecs(-3600), logGroup);
+    endEdit_ = new QDateTimeEdit(now, logGroup);
     startEdit_->setDisplayFormat(QStringLiteral("yyyy-MM-dd HH:mm:ss"));
     endEdit_->setDisplayFormat(QStringLiteral("yyyy-MM-dd HH:mm:ss"));
     startEdit_->setCalendarPopup(true);
@@ -73,6 +76,8 @@ AlarmPageWidget::AlarmPageWidget(QWidget *parent)
 
     auto *refreshButton = new QPushButton(tr("刷新"), logGroup);
     auto *clearButton = new QPushButton(tr("清空"), logGroup);
+    UiStyles::applyButtonVariant(refreshButton, QStringLiteral("secondary"));
+    UiStyles::applyButtonVariant(clearButton, QStringLiteral("danger"));
     connect(refreshButton, &QPushButton::clicked, this, [this]() {
         emit refreshRequested(startEdit_->dateTime(), endEdit_->dateTime());
     });
@@ -120,6 +125,22 @@ QDateTime AlarmPageWidget::startDateTime() const
 QDateTime AlarmPageWidget::endDateTime() const
 {
     return endEdit_->dateTime();
+}
+
+void AlarmPageWidget::resetTimeRangeToRecentWindow()
+{
+    const QDateTime now = QDateTime::currentDateTime();
+    startEdit_->setDateTime(now.addSecs(-3600));
+    endEdit_->setDateTime(now);
+}
+
+void AlarmPageWidget::followEndTimeToNow()
+{
+    const QDateTime now = QDateTime::currentDateTime();
+    endEdit_->setDateTime(now);
+    if (!startEdit_->dateTime().isValid() || startEdit_->dateTime() >= now) {
+        startEdit_->setDateTime(now.addSecs(-3600));
+    }
 }
 
 void AlarmPageWidget::setAlarmSettings(const AlarmSettings &settings)

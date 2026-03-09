@@ -20,13 +20,28 @@ class ThemeManager : public QObject
 {
     Q_OBJECT
 public:
+    enum class ThemeMode {
+        System,
+        Light,
+        Dark
+    };
+    Q_ENUM(ThemeMode)
+
     explicit ThemeManager(QObject *parent = nullptr);
 
     void initialize();
     bool reload();
+    void setThemeMode(ThemeMode mode);
+    ThemeMode themeMode() const;
+    ThemeMode effectiveThemeMode() const;
+    QString themeModeKey() const;
     QString currentSchemePath() const;
     QString currentSchemeName() const;
     QString currentStyleName() const;
+
+    static ThemeMode themeModeFromKey(const QString &key);
+    static QString themeModeToKey(ThemeMode mode);
+    static QString themeModeDisplayName(ThemeMode mode);
 
 signals:
     void themeChanged();
@@ -44,6 +59,10 @@ private:
     QString configPath_;
     QString schemePath_;
     QString styleName_;
+    QPalette systemPalette_;
+    bool systemPaletteCaptured_ = false;
+    bool systemPaletteIsDark_ = false;
+    ThemeMode themeMode_ = ThemeMode::System;
 };
 
 #endif // THEMEUTILS_H

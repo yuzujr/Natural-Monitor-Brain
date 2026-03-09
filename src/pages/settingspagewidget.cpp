@@ -39,24 +39,37 @@ SettingsPageWidget::SettingsPageWidget(QWidget *parent)
     soundCombo_->addItem(tr("提示音"), QStringLiteral("beep"));
     soundCombo_->addItem(tr("静音"), QStringLiteral("mute"));
 
+    themeModeCombo_ = new QComboBox(settingsGroup);
+    themeModeCombo_->addItem(tr("跟随系统"), QStringLiteral("system"));
+    themeModeCombo_->addItem(tr("浅色"), QStringLiteral("light"));
+    themeModeCombo_->addItem(tr("深色"), QStringLiteral("dark"));
+    connect(themeModeCombo_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            [this](int index) {
+                emit themeModeChanged(themeModeCombo_->itemData(index).toString());
+            });
+
     settingsLayout->addWidget(new QLabel(tr("刷新频率"), settingsGroup), 0, 0);
     settingsLayout->addWidget(intervalCombo_, 0, 1);
-    settingsLayout->addWidget(new QLabel(tr("主题"), settingsGroup), 1, 0);
+    settingsLayout->addWidget(new QLabel(tr("主题模式"), settingsGroup), 1, 0);
+    settingsLayout->addWidget(themeModeCombo_, 1, 1);
+    settingsLayout->addWidget(new QLabel(tr("主题状态"), settingsGroup), 2, 0);
 
-    themeStatusLabel_ = new QLabel(tr("跟随系统主题 (qt6ct)"), settingsGroup);
+    themeStatusLabel_ = new QLabel(tr("跟随系统默认主题"), settingsGroup);
     themeStatusLabel_->setStyleSheet(UiStyles::secondaryTextStyle());
-    settingsLayout->addWidget(themeStatusLabel_, 1, 1);
+    settingsLayout->addWidget(themeStatusLabel_, 2, 1);
 
     auto *reloadThemeButton = new QPushButton(tr("重新加载主题"), settingsGroup);
+    UiStyles::applyButtonVariant(reloadThemeButton, QStringLiteral("secondary"));
     connect(reloadThemeButton, &QPushButton::clicked, this, &SettingsPageWidget::reloadThemeRequested);
-    settingsLayout->addWidget(reloadThemeButton, 1, 2);
+    settingsLayout->addWidget(reloadThemeButton, 2, 2);
 
-    settingsLayout->addWidget(new QLabel(tr("报警提示"), settingsGroup), 2, 0);
-    settingsLayout->addWidget(soundCombo_, 2, 1);
+    settingsLayout->addWidget(new QLabel(tr("报警提示"), settingsGroup), 3, 0);
+    settingsLayout->addWidget(soundCombo_, 3, 1);
 
     auto *applyButton = new QPushButton(tr("应用设置"), settingsGroup);
+    UiStyles::applyButtonVariant(applyButton, QStringLiteral("primary"));
     connect(applyButton, &QPushButton::clicked, this, &SettingsPageWidget::applyRequested);
-    settingsLayout->addWidget(applyButton, 3, 0, 1, 3);
+    settingsLayout->addWidget(applyButton, 4, 0, 1, 3);
     layout->addWidget(settingsGroup);
 
     auto *dbGroup = new QGroupBox(tr("数据库维护"), this);
@@ -64,9 +77,12 @@ SettingsPageWidget::SettingsPageWidget(QWidget *parent)
 
     dbPathLabel_ = new QLabel(dbGroup);
     dbPathLabel_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    dbPathLabel_->setWordWrap(true);
 
     auto *backupButton = new QPushButton(tr("备份数据库"), dbGroup);
     auto *restoreButton = new QPushButton(tr("恢复数据库"), dbGroup);
+    UiStyles::applyButtonVariant(backupButton, QStringLiteral("primary"));
+    UiStyles::applyButtonVariant(restoreButton, QStringLiteral("secondary"));
     connect(backupButton, &QPushButton::clicked, this, &SettingsPageWidget::backupRequested);
     connect(restoreButton, &QPushButton::clicked, this, &SettingsPageWidget::restoreRequested);
 
@@ -76,6 +92,7 @@ SettingsPageWidget::SettingsPageWidget(QWidget *parent)
     cleanupDaysSpin_->setSuffix(tr(" 天"));
 
     auto *cleanupButton = new QPushButton(tr("清理历史数据"), dbGroup);
+    UiStyles::applyButtonVariant(cleanupButton, QStringLiteral("danger"));
     connect(cleanupButton, &QPushButton::clicked, this, [this]() {
         emit cleanupRequested(cleanupDaysSpin_->value());
     });
@@ -113,6 +130,20 @@ void SettingsPageWidget::setSoundMode(const QString &soundMode)
 QString SettingsPageWidget::soundMode() const
 {
     return soundCombo_->currentData().toString();
+}
+
+void SettingsPageWidget::setThemeMode(const QString &themeMode)
+{
+    const int index = themeModeCombo_->findData(themeMode);
+    if (index >= 0 && themeModeCombo_->currentIndex() != index) {
+        QSignalBlocker blocker(themeModeCombo_);
+        themeModeCombo_->setCurrentIndex(index);
+    }
+}
+
+QString SettingsPageWidget::themeMode() const
+{
+    return themeModeCombo_->currentData().toString();
 }
 
 void SettingsPageWidget::setThemeStatus(const QString &text)

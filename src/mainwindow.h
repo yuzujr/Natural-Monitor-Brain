@@ -31,6 +31,9 @@ public:
     explicit MainWindow(DatabaseManager *db, ThemeManager *themeManager, const UserInfo &user, QWidget *parent = nullptr);
     ~MainWindow();
 
+signals:
+    void logoutRequested();
+
 private slots:
     void handleDataTick();
     void handleToggleSimulation();
@@ -44,7 +47,9 @@ private slots:
     void handleApplySettings();
     void handleBackupDatabase();
     void handleRestoreDatabase();
+    void handleLogout();
     void handleRefreshIntervalChanged(int ms);
+    void handleThemeModeChanged(const QString &modeKey);
     void handleThemeUpdated();
     void handleUserAdd(const QString &username, const QString &password, const QString &role);
     void handleUserDelete(int id);
