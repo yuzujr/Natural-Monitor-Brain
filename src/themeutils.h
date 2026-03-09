@@ -23,7 +23,15 @@ public:
     enum class ThemeMode {
         System,
         Light,
-        Dark
+        Dark,
+        SkyBlue,
+        DeepBlue,
+        ForestGreen,
+        SunsetOrange,
+        VioletPurple,
+        NeutralGray,
+        SakuraPink,
+        LemonYellow
     };
     Q_ENUM(ThemeMode)
 

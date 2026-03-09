@@ -41,8 +41,16 @@ SettingsPageWidget::SettingsPageWidget(QWidget *parent)
 
     themeModeCombo_ = new QComboBox(settingsGroup);
     themeModeCombo_->addItem(tr("跟随系统"), QStringLiteral("system"));
-    themeModeCombo_->addItem(tr("浅色"), QStringLiteral("light"));
-    themeModeCombo_->addItem(tr("深色"), QStringLiteral("dark"));
+    themeModeCombo_->addItem(tr("默认亮色"), QStringLiteral("light"));
+    themeModeCombo_->addItem(tr("默认暗色"), QStringLiteral("dark"));
+    themeModeCombo_->addItem(tr("晴空蓝"), QStringLiteral("skyblue"));
+    themeModeCombo_->addItem(tr("深海蓝"), QStringLiteral("deepblue"));
+    themeModeCombo_->addItem(tr("森林绿"), QStringLiteral("forestgreen"));
+    themeModeCombo_->addItem(tr("落日橙"), QStringLiteral("sunsetorange"));
+    themeModeCombo_->addItem(tr("紫堇紫"), QStringLiteral("violetpurple"));
+    themeModeCombo_->addItem(tr("中性灰"), QStringLiteral("neutralgray"));
+    themeModeCombo_->addItem(tr("樱花粉"), QStringLiteral("sakurapink"));
+    themeModeCombo_->addItem(tr("柠檬黄"), QStringLiteral("lemonyellow"));
     connect(themeModeCombo_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [this](int index) {
                 emit themeModeChanged(themeModeCombo_->itemData(index).toString());
