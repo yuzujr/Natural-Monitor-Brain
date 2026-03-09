@@ -16,7 +16,7 @@ class HistoryPageWidget;
 class AlarmRepository;
 class AlarmService;
 class QMessageBox;
-class QTabWidget;
+class AnimatedTabWidget;
 class QTimer;
 class RealtimePageWidget;
 class SampleRepository;
@@ -88,7 +88,7 @@ private:
     UserInfo currentUser_;
 
     QWidget *centralWidget_ = nullptr;
-    QTabWidget *tabs_ = nullptr;
+    AnimatedTabWidget *tabs_ = nullptr;
     RealtimePageWidget *realtimePage_ = nullptr;
     HistoryPageWidget *historyPage_ = nullptr;
     AlarmPageWidget *alarmPage_ = nullptr;

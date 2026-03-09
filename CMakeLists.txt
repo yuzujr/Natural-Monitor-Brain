@@ -70,6 +70,8 @@ set(PROJECT_SOURCES
     src/common/moduletypes.h
     src/common/uistyles.cpp
     src/common/uistyles.h
+    src/common/animatedtabwidget.cpp
+    src/common/animatedtabwidget.h
     src/repositories/alarmrepository.cpp
     src/repositories/alarmrepository.h
     src/repositories/samplerepository.cpp

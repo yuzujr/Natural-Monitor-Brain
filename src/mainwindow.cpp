@@ -9,7 +9,7 @@
 #include <QStatusBar>
 #include <QStyle>
 #include <QStringList>
-#include <QTabWidget>
+#include "common/animatedtabwidget.h"
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -59,7 +59,7 @@ MainWindow::MainWindow(DatabaseManager *db, ThemeManager *themeManager, Language
     centralLayout->setContentsMargins(8, 8, 8, 8);
     centralLayout->setSpacing(12);
 
-    tabs_ = new QTabWidget(centralWidget_);
+    tabs_ = new AnimatedTabWidget(centralWidget_);
     realtimePage_ = new RealtimePageWidget(this);
     historyPage_ = new HistoryPageWidget(this);
     alarmPage_ = new AlarmPageWidget(this);
