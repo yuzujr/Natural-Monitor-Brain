@@ -9,8 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Sql PrintSupport)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql PrintSupport)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Sql PrintSupport Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql PrintSupport Network)
 
 set(NATURAL_MONITOR_USE_QCUSTOMPLOT_DEFAULT OFF)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/qcustomplot.h" AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/qcustomplot.cpp")
@@ -60,6 +60,8 @@ set(PROJECT_SOURCES
     src/services/csvexporter.h
     src/services/alarmservice.cpp
     src/services/alarmservice.h
+    src/services/udpsensorclient.cpp
+    src/services/udpsensorclient.h
     src/pages/realtimepagewidget.cpp
     src/pages/realtimepagewidget.h
     src/pages/historypagewidget.cpp
@@ -102,6 +104,7 @@ target_link_libraries(Natural-Monitor-Brain PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Sql
     Qt${QT_VERSION_MAJOR}::PrintSupport
+    Qt${QT_VERSION_MAJOR}::Network
 )
 
 target_include_directories(Natural-Monitor-Brain PRIVATE

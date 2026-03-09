@@ -22,6 +22,7 @@ class RealtimePageWidget;
 class SampleRepository;
 class SettingsPageWidget;
 class ThemeManager;
+class UdpSensorClient;
 class UserRepository;
 class UserManagementPageWidget;
 
@@ -51,6 +52,8 @@ private slots:
     void handleRestoreDatabase();
     void handleLogout();
     void handleRefreshIntervalChanged(int ms);
+    void handleSensorSampleReceived(const EnvSample &sample);
+    void handleSensorRequestFailed(const QString &message);
     void handleThemeModeChanged(const QString &modeKey);
     void handleThemeUpdated();
     void handleUserAdd(const QString &username, const QString &password, const QString &role);
@@ -66,8 +69,9 @@ private:
     void loadSettings();
     void saveSettings();
     void setRefreshInterval(int ms);
-    EnvSample generateSample();
     void showAlarmEvents(const QList<AlarmEvent> &events);
+
+    QString lastSensorError_;
 
     DatabaseManager *db_ = nullptr;
     UserRepository *userRepository_ = nullptr;
@@ -75,6 +79,7 @@ private:
     AlarmRepository *alarmRepository_ = nullptr;
     AlarmService *alarmService_ = nullptr;
     ThemeManager *themeManager_ = nullptr;
+    UdpSensorClient *sensorClient_ = nullptr;
     UserInfo currentUser_;
 
     QWidget *centralWidget_ = nullptr;

@@ -20,6 +20,7 @@ public:
 
     void setRefreshInterval(int ms);
     void setSimulationRunning(bool running);
+    void setSourceText(const QString &text);
     void updateSample(const EnvSample &sample);
     void addSample(const EnvSample &sample);
     void refreshThemeStyles();

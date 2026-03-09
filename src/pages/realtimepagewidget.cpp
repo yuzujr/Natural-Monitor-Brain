@@ -35,7 +35,7 @@ RealtimePageWidget::RealtimePageWidget(QWidget *parent)
     layout->addWidget(headerCard_);
 
     auto *toolbar = new QHBoxLayout();
-    sourceLabel_ = new QLabel(tr("数据来源: 模拟传感器"), this);
+    sourceLabel_ = new QLabel(tr("数据来源: 本地 UDP 服务 (127.0.0.1:8888)"), this);
 
     toggleSimButton_ = new QPushButton(tr("暂停采集"), this);
     UiStyles::applyButtonVariant(toggleSimButton_, QStringLiteral("secondary"));
@@ -143,6 +143,11 @@ void RealtimePageWidget::setRefreshInterval(int ms)
 void RealtimePageWidget::setSimulationRunning(bool running)
 {
     toggleSimButton_->setText(running ? tr("暂停采集") : tr("继续采集"));
+}
+
+void RealtimePageWidget::setSourceText(const QString &text)
+{
+    sourceLabel_->setText(text);
 }
 
 void RealtimePageWidget::updateSample(const EnvSample &sample)

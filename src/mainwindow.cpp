@@ -5,7 +5,6 @@
 #include <QFileDialog>
 #include <QMenuBar>
 #include <QMessageBox>
-#include <QRandomGenerator>
 #include <QSettings>
 #include <QStatusBar>
 #include <QStyle>
@@ -28,6 +27,7 @@
 #include "repositories/userrepository.h"
 #include "services/alarmservice.h"
 #include "services/csvexporter.h"
+#include "services/udpsensorclient.h"
 #include "themeutils.h"
 
 namespace {
@@ -42,6 +42,7 @@ MainWindow::MainWindow(DatabaseManager *db, ThemeManager *themeManager, const Us
     , alarmRepository_(db ? db->alarmRepository() : nullptr)
     , alarmService_(new AlarmService(alarmRepository_))
     , themeManager_(themeManager)
+    , sensorClient_(new UdpSensorClient(this))
     , currentUser_(user)
 {
     setWindowTitle(tr("环境数据信息平台"));
@@ -94,6 +95,8 @@ MainWindow::MainWindow(DatabaseManager *db, ThemeManager *themeManager, const Us
             themeManager_->reload();
         }
     });
+    connect(sensorClient_, &UdpSensorClient::sampleReceived, this, &MainWindow::handleSensorSampleReceived);
+    connect(sensorClient_, &UdpSensorClient::requestFailed, this, &MainWindow::handleSensorRequestFailed);
 
     if (userPage_) {
         connect(userPage_, &UserManagementPageWidget::addUserRequested, this, &MainWindow::handleUserAdd);
@@ -145,7 +148,16 @@ void MainWindow::handleDataTick()
         return;
     }
 
-    const EnvSample sample = generateSample();
+    sensorClient_->requestSample();
+}
+
+void MainWindow::handleSensorSampleReceived(const EnvSample &sample)
+{
+    if (!lastSensorError_.isEmpty()) {
+        lastSensorError_.clear();
+    }
+    realtimePage_->setSourceText(tr("数据来源: 本地 UDP 服务 (127.0.0.1:8888)"));
+
     if (sampleRepository_) {
         sampleRepository_->insertSample(sample);
     }
@@ -160,6 +172,19 @@ void MainWindow::handleDataTick()
         handleRefreshAlarms(alarmPage_->startDateTime(), alarmPage_->endDateTime());
     }
     lastSample_ = sample;
+    statusBar()->showMessage(tr("已接收本地 UDP 数据: %1").arg(sample.ts.toString("HH:mm:ss")), 3000);
+}
+
+void MainWindow::handleSensorRequestFailed(const QString &message)
+{
+    if (message == lastSensorError_) {
+        statusBar()->showMessage(message, 3000);
+        return;
+    }
+
+    lastSensorError_ = message;
+    realtimePage_->setSourceText(tr("数据来源: 本地 UDP 服务 (127.0.0.1:8888) [连接异常]"));
+    statusBar()->showMessage(message, 5000);
 }
 
 void MainWindow::handleToggleSimulation()
@@ -623,31 +648,6 @@ void MainWindow::setRefreshInterval(int ms)
 
     realtimePage_->setRefreshInterval(ms);
     settingsPage_->setRefreshInterval(ms);
-}
-
-EnvSample MainWindow::generateSample()
-{
-    EnvSample sample;
-    sample.ts = QDateTime::currentDateTime();
-
-    auto randBetween = [](double min, double max) {
-        return min + QRandomGenerator::global()->generateDouble() * (max - min);
-    };
-
-    if (!lastSample_.ts.isValid()) {
-        sample.temperature = randBetween(18, 28);
-        sample.humidity = randBetween(40, 60);
-        sample.pm25 = randBetween(20, 80);
-        sample.co2 = randBetween(450, 800);
-        return sample;
-    }
-
-    sample.temperature = qBound(0.0, lastSample_.temperature + randBetween(-0.6, 0.6), 40.0);
-    sample.humidity = qBound(10.0, lastSample_.humidity + randBetween(-1.5, 1.5), 90.0);
-    sample.pm25 = qBound(0.0, lastSample_.pm25 + randBetween(-5, 5), 200.0);
-    sample.co2 = qBound(300.0, lastSample_.co2 + randBetween(-30, 30), 2000.0);
-
-    return sample;
 }
 
 void MainWindow::showAlarmEvents(const QList<AlarmEvent> &events)
