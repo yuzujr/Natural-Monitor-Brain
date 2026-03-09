@@ -5,6 +5,7 @@
 #include <QPalette>
 #include <QPushButton>
 #include <QStyle>
+#include <QTabBar>
 #include <QTabWidget>
 #include <QWidget>
 
@@ -376,9 +377,17 @@ void applyPageStyle(QWidget *widget)
         "  color: %1;"
         "  border: none;"
         "  border-bottom: 1px solid %4;"
+        "  border-right: 1px solid %4;"
         "  padding: 8px;"
         "  font-weight: 600;"
         "}"
+        "QTableCornerButton::section {"
+        "  background: %9;"
+        "  border: none;"
+        "  border-right: 1px solid %4;"
+        "  border-bottom: 1px solid %4;"
+        "}"
+        "QTableWidget QTableCornerButton::section { background: %9; }"
         "QCheckBox, QLabel { color: %1; }"
         "QAbstractItemView::item:selected { background: palette(highlight); color: palette(highlightedText); }"
         "%10"
@@ -431,13 +440,20 @@ void applyTabStyle(QTabWidget *tabs)
     }
 
     tabs->setDocumentMode(true);
+    if (tabs->tabBar()) {
+        tabs->tabBar()->setDrawBase(false);
+    }
     tabs->setStyleSheet(QString(
-        "QTabWidget::pane { border: none; }"
+        "QTabWidget::pane {"
+        "  border: none;"
+        "  border-top: 1px solid %3;"
+        "  top: -1px;"
+        "}"
         "QTabBar::tab {"
         "  background: %1;"
         "  color: %2;"
         "  border: 1px solid %3;"
-        "  border-bottom: none;"
+        "  border-bottom: 1px solid %3;"
         "  min-width: 104px;"
         "  padding: 10px 18px;"
         "  border-top-left-radius: 12px;"
@@ -448,8 +464,10 @@ void applyTabStyle(QTabWidget *tabs)
         "QTabBar::tab:selected {"
         "  background: %5;"
         "  color: %6;"
+        "  border-bottom-color: %5;"
         "  font-weight: 700;"
         "}"
+        "QTabBar::tab:!selected { margin-top: 3px; }"
     )
         .arg(colorToString(alternatePanelColor()))
         .arg(colorToString(primaryTextColor()))

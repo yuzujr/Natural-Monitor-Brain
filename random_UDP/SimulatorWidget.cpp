@@ -90,6 +90,7 @@ void SimulatorWidget::toggleServer()
         port = portBox->value();
         if (udpSocket->bind(QHostAddress::Any, port)) {
             isRunning = true;
+            isFirstRequest = true; // 新增：每次启动服务都重置状态
             startBtn->setText("停止服务");
             portBox->setEnabled(false);
             logMessage(QString("服务已启动，正在监听端口: %1").arg(port));
@@ -105,6 +106,43 @@ void SimulatorWidget::toggleServer()
     }
 }
 
+void SimulatorWidget::updateSimulatedValues()
+{
+    if (isFirstRequest) {
+        // 第一次请求，以用户设定的范围中间值作为初始基准点
+        currentTemp = tempMinBox->value() + (tempMaxBox->value() - tempMinBox->value()) / 2.0;
+        currentHum = humMinBox->value() + (humMaxBox->value() - humMinBox->value()) / 2.0;
+        currentPm25 = pmMinBox->value() + (pmMaxBox->value() - pmMinBox->value()) / 2;
+        currentCo2 = co2MinBox->value() + (co2MaxBox->value() - co2MinBox->value()) / 2;
+        isFirstRequest = false;
+    } else {
+        // 后续请求，在当前值基础上进行小幅度随机游走 (Random Walk)
+
+        // 温度：波动范围 [-0.5, +0.5]
+        double tempStep = (QRandomGenerator::global()->generateDouble() * 1.0) - 0.5;
+        currentTemp += tempStep;
+
+        // 湿度：波动范围 [-1.0, +1.0]
+        double humStep = (QRandomGenerator::global()->generateDouble() * 2.0) - 1.0;
+        currentHum += humStep;
+
+        // PM2.5：波动范围 [-3, +3] (注意 bounded 的上限是开区间，所以写 4)
+        int pmStep = QRandomGenerator::global()->bounded(-3, 4);
+        currentPm25 += pmStep;
+
+        // CO2：波动范围 [-10, +10]
+        int co2Step = QRandomGenerator::global()->bounded(-10, 11);
+        currentCo2 += co2Step;
+    }
+
+    // 关键：使用 qBound 限制数值，防止长时间运行后数据漂移出用户设定的界限
+    currentTemp = qBound(tempMinBox->value(), currentTemp, tempMaxBox->value());
+    currentHum  = qBound(humMinBox->value(), currentHum, humMaxBox->value());
+    currentPm25 = qBound(pmMinBox->value(), currentPm25, pmMaxBox->value());
+    currentCo2  = qBound(co2MinBox->value(), currentCo2, co2MaxBox->value());
+}
+
+
 void SimulatorWidget::processPendingDatagrams()
 {
     while (udpSocket->hasPendingDatagrams()) {
@@ -113,45 +151,30 @@ void SimulatorWidget::processPendingDatagrams()
         QHostAddress sender;
         quint16 senderPort;
 
-        // 读取请求数据
         udpSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
-
         logMessage(QString("收到来自 %1:%2 的请求").arg(sender.toString()).arg(senderPort));
 
-        // 1. 生成随机数据
-        double temp = generateRandomDouble(tempMinBox->value(), tempMaxBox->value());
-        double hum = generateRandomDouble(humMinBox->value(), humMaxBox->value());
-        int pm25 = generateRandomInt(pmMinBox->value(), pmMaxBox->value());
-        int co2 = generateRandomInt(co2MinBox->value(), co2MaxBox->value());
+        // 1. 更新环境数据状态（平滑渐变）
+        updateSimulatedValues();
 
-        // 2. 打包成JSON
+        // 2. 打包成 JSON
         QJsonObject jsonObj;
-        jsonObj["temperature"] = QString::number(temp, 'f', 1).toDouble(); // 保留一位小数
-        jsonObj["humidity"] = QString::number(hum, 'f', 1).toDouble();
-        jsonObj["pm25"] = pm25;
-        jsonObj["co2"] = co2;
+        jsonObj["temperature"] = QString::number(currentTemp, 'f', 1).toDouble();
+        jsonObj["humidity"]    = QString::number(currentHum, 'f', 1).toDouble();
+        jsonObj["pm25"]        = currentPm25;
+        jsonObj["co2"]         = currentCo2;
 
         QJsonDocument jsonDoc(jsonObj);
         QByteArray responseData = jsonDoc.toJson(QJsonDocument::Compact);
 
-        // 3. 将数据发回给请求者
+        // 3. 返回数据
         udpSocket->writeDatagram(responseData, sender, senderPort);
-
         logMessage(QString("已返回数据: %1").arg(QString(responseData)));
     }
 }
 
-double SimulatorWidget::generateRandomDouble(double min, double max)
-{
-    if (min >= max) return min;
-    return min + QRandomGenerator::global()->generateDouble() * (max - min);
-}
 
-int SimulatorWidget::generateRandomInt(int min, int max)
-{
-    if (min >= max) return min;
-    return QRandomGenerator::global()->bounded(min, max + 1);
-}
+
 
 void SimulatorWidget::logMessage(const QString &msg)
 {
