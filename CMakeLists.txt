@@ -30,6 +30,24 @@ if(NATURAL_MONITOR_USE_QCUSTOMPLOT)
             src/extern/qcustomplot.cpp
         )
         add_compile_definitions(NATURAL_MONITOR_USE_QCUSTOMPLOT)
+        
+        # ========== 新增部分：解决 QCustomPlot 编译节数过多问题 ==========
+        # 为 MinGW 编译器添加 -Wa,-mbig-obj 选项
+        if(MINGW)
+            set_source_files_properties(
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/extern/qcustomplot.cpp
+                PROPERTIES COMPILE_FLAGS "-Wa,-mbig-obj"
+            )
+        endif()
+        # 为 MSVC 编译器添加 /bigobj 选项（备用）
+        if(MSVC)
+            set_source_files_properties(
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/extern/qcustomplot.cpp
+                PROPERTIES COMPILE_FLAGS "/bigobj"
+            )
+        endif()
+        # ========== 新增部分结束 ==========
+        
     else()
         message(WARNING "NATURAL_MONITOR_USE_QCUSTOMPLOT=ON, but src/extern/qcustomplot.h/.cpp were not found. Falling back to the built-in chart renderer.")
     endif()
