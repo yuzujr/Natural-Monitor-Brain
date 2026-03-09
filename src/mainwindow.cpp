@@ -16,6 +16,7 @@
 #include <QtGlobal>
 
 #include "common/uistyles.h"
+#include "languageutils.h"
 #include "pages/alarmpagewidget.h"
 #include "pages/exportpagewidget.h"
 #include "pages/historypagewidget.h"
@@ -34,7 +35,8 @@ namespace {
 constexpr int kDefaultLimit = 1000;
 }
 
-MainWindow::MainWindow(DatabaseManager *db, ThemeManager *themeManager, const UserInfo &user, QWidget *parent)
+MainWindow::MainWindow(DatabaseManager *db, ThemeManager *themeManager, LanguageManager *languageManager,
+                       const UserInfo &user, QWidget *parent)
     : QMainWindow(parent)
     , db_(db)
     , userRepository_(db ? db->userRepository() : nullptr)
@@ -42,6 +44,7 @@ MainWindow::MainWindow(DatabaseManager *db, ThemeManager *themeManager, const Us
     , alarmRepository_(db ? db->alarmRepository() : nullptr)
     , alarmService_(new AlarmService(alarmRepository_))
     , themeManager_(themeManager)
+    , languageManager_(languageManager)
     , sensorClient_(new UdpSensorClient(this))
     , currentUser_(user)
 {
@@ -90,6 +93,7 @@ MainWindow::MainWindow(DatabaseManager *db, ThemeManager *themeManager, const Us
     connect(settingsPage_, &SettingsPageWidget::backupRequested, this, &MainWindow::handleBackupDatabase);
     connect(settingsPage_, &SettingsPageWidget::restoreRequested, this, &MainWindow::handleRestoreDatabase);
     connect(settingsPage_, &SettingsPageWidget::cleanupRequested, this, &MainWindow::handleCleanupData);
+    connect(settingsPage_, &SettingsPageWidget::languageToggleRequested, this, &MainWindow::handleLanguageToggle);
     connect(settingsPage_, &SettingsPageWidget::reloadThemeRequested, this, [this]() {
         if (themeManager_) {
             themeManager_->reload();
@@ -428,6 +432,21 @@ void MainWindow::handleRefreshIntervalChanged(int ms)
     saveSettings();
 }
 
+void MainWindow::handleLanguageToggle()
+{
+    if (!languageManager_) {
+        return;
+    }
+
+    if (dataTimer_) {
+        dataTimer_->stop();
+    }
+
+    languageManager_->toggleLanguage();
+    emit relaunchRequested();
+    close();
+}
+
 void MainWindow::handleThemeModeChanged(const QString &modeKey)
 {
     if (!themeManager_) {
@@ -593,6 +612,10 @@ void MainWindow::updateThemeStatus()
     const QString statusText = tr("%1，当前效果: %2，样式: %3")
         .arg(modeName, schemeName, styleName);
     settingsPage_->setThemeStatus(statusText);
+    if (languageManager_) {
+        settingsPage_->setLanguageInfo(languageManager_->currentLanguageDisplayName(),
+                                       languageManager_->nextLanguageButtonText());
+    }
 }
 
 void MainWindow::loadSettings()

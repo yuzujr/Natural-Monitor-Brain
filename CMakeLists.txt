@@ -39,6 +39,8 @@ set(PROJECT_SOURCES
     src/main.cpp
     src/mainwindow.cpp
     src/mainwindow.h
+    src/languageutils.cpp
+    src/languageutils.h
     src/databasemanager.cpp
     src/databasemanager.h
     src/logindialog.cpp

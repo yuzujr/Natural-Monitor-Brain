@@ -116,6 +116,7 @@ void RealtimePageWidget::refreshThemeStyles()
     applyMetricCardStyle(humCard_, humTitleLabel_, humValue_, humBar_, QStringLiteral("#3f88c5"));
     applyMetricCardStyle(pmCard_, pmTitleLabel_, pmValue_, pmBar_, QStringLiteral("#f4a259"));
     applyMetricCardStyle(co2Card_, co2TitleLabel_, co2Value_, co2Bar_, QStringLiteral("#5bba6f"));
+    chart_->refreshThemeStyles();
 }
 
 void RealtimePageWidget::applyMetricCardStyle(QFrame *card, QLabel *nameLabel, QLabel *valueLabel,

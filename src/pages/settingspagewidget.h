@@ -5,6 +5,7 @@
 
 class QComboBox;
 class QLabel;
+class QPushButton;
 class QSpinBox;
 
 class SettingsPageWidget : public QWidget
@@ -21,6 +22,7 @@ public:
     QString themeMode() const;
     void setThemeStatus(const QString &text);
     void setDatabasePath(const QString &path);
+    void setLanguageInfo(const QString &currentLanguage, const QString &buttonText);
 
 signals:
     void refreshIntervalChanged(int ms);
@@ -30,6 +32,7 @@ signals:
     void restoreRequested();
     void cleanupRequested(int days);
     void reloadThemeRequested();
+    void languageToggleRequested();
 
 private:
     QComboBox *intervalCombo_ = nullptr;
@@ -37,6 +40,8 @@ private:
     QComboBox *themeModeCombo_ = nullptr;
     QLabel *themeStatusLabel_ = nullptr;
     QLabel *dbPathLabel_ = nullptr;
+    QLabel *languageStatusLabel_ = nullptr;
+    QPushButton *languageToggleButton_ = nullptr;
     QSpinBox *cleanupDaysSpin_ = nullptr;
 };
 

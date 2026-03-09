@@ -6,14 +6,20 @@
 #include "databasemanager.h"
 
 class QLineEdit;
+class QPushButton;
 class QTabWidget;
+class LanguageManager;
 class UserRepository;
 
 class LoginDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit LoginDialog(DatabaseManager *db, QWidget *parent = nullptr);
+    enum DialogResult {
+        LanguageSwitchResult = 1001
+    };
+
+    explicit LoginDialog(DatabaseManager *db, LanguageManager *languageManager, QWidget *parent = nullptr);
 
     UserInfo currentUser() const;
 
@@ -24,6 +30,7 @@ private slots:
 
 private:
     DatabaseManager *db_ = nullptr;
+    LanguageManager *languageManager_ = nullptr;
     UserRepository *userRepository_ = nullptr;
     UserInfo currentUser_;
 
@@ -39,6 +46,7 @@ private:
     QLineEdit *resetUserEdit_ = nullptr;
     QLineEdit *resetPassEdit_ = nullptr;
     QLineEdit *resetPassConfirmEdit_ = nullptr;
+    QPushButton *languageButton_ = nullptr;
 };
 
 #endif // LOGINDIALOG_H

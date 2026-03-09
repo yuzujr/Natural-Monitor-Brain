@@ -6,6 +6,7 @@
 
 struct EnvSample;
 class QCustomPlot;
+class QWidget;
 
 class LineChartWidget : public QWidget
 {
@@ -16,6 +17,7 @@ public:
     void addSample(const EnvSample &sample);
     void clear();
     void setMaxPoints(int maxPoints);
+    void refreshThemeStyles();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -31,6 +33,7 @@ private:
     int maxPoints_ = 60;
     int predictionPoints_ = 5;
     QCustomPlot *customPlot_ = nullptr;
+    QWidget *legendRow_ = nullptr;
 };
 
 #endif // LINECHARTWIDGET_H

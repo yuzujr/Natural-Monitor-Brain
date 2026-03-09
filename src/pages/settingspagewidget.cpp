@@ -63,13 +63,22 @@ SettingsPageWidget::SettingsPageWidget(QWidget *parent)
     connect(reloadThemeButton, &QPushButton::clicked, this, &SettingsPageWidget::reloadThemeRequested);
     settingsLayout->addWidget(reloadThemeButton, 2, 2);
 
-    settingsLayout->addWidget(new QLabel(tr("报警提示"), settingsGroup), 3, 0);
-    settingsLayout->addWidget(soundCombo_, 3, 1);
+    settingsLayout->addWidget(new QLabel(tr("界面语言"), settingsGroup), 3, 0);
+    languageStatusLabel_ = new QLabel(tr("当前语言"), settingsGroup);
+    languageStatusLabel_->setStyleSheet(UiStyles::secondaryTextStyle());
+    settingsLayout->addWidget(languageStatusLabel_, 3, 1);
+    languageToggleButton_ = new QPushButton(tr("切换到 English"), settingsGroup);
+    UiStyles::applyButtonVariant(languageToggleButton_, QStringLiteral("secondary"));
+    connect(languageToggleButton_, &QPushButton::clicked, this, &SettingsPageWidget::languageToggleRequested);
+    settingsLayout->addWidget(languageToggleButton_, 3, 2);
+
+    settingsLayout->addWidget(new QLabel(tr("报警提示"), settingsGroup), 4, 0);
+    settingsLayout->addWidget(soundCombo_, 4, 1);
 
     auto *applyButton = new QPushButton(tr("应用设置"), settingsGroup);
     UiStyles::applyButtonVariant(applyButton, QStringLiteral("primary"));
     connect(applyButton, &QPushButton::clicked, this, &SettingsPageWidget::applyRequested);
-    settingsLayout->addWidget(applyButton, 4, 0, 1, 3);
+    settingsLayout->addWidget(applyButton, 5, 0, 1, 3);
     layout->addWidget(settingsGroup);
 
     auto *dbGroup = new QGroupBox(tr("数据库维护"), this);
@@ -154,4 +163,14 @@ void SettingsPageWidget::setThemeStatus(const QString &text)
 void SettingsPageWidget::setDatabasePath(const QString &path)
 {
     dbPathLabel_->setText(path);
+}
+
+void SettingsPageWidget::setLanguageInfo(const QString &currentLanguage, const QString &buttonText)
+{
+    if (languageStatusLabel_) {
+        languageStatusLabel_->setText(currentLanguage);
+    }
+    if (languageToggleButton_) {
+        languageToggleButton_->setText(buttonText);
+    }
 }

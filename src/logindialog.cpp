@@ -1,6 +1,7 @@
 #include "logindialog.h"
 
 #include "common/uistyles.h"
+#include "languageutils.h"
 #include "repositories/userrepository.h"
 
 #include <QDialogButtonBox>
@@ -12,9 +13,10 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
-LoginDialog::LoginDialog(DatabaseManager *db, QWidget *parent)
+LoginDialog::LoginDialog(DatabaseManager *db, LanguageManager *languageManager, QWidget *parent)
     : QDialog(parent)
     , db_(db)
+    , languageManager_(languageManager)
     , userRepository_(db ? db->userRepository() : nullptr)
 {
     setWindowTitle(tr("用户登录"));
@@ -93,6 +95,16 @@ LoginDialog::LoginDialog(DatabaseManager *db, QWidget *parent)
     tabs_->addTab(resetPage, tr("找回密码"));
 
     layout->addWidget(tabs_);
+
+    languageButton_ = new QPushButton(languageManager_ ? languageManager_->nextLanguageButtonText() : tr("切换到 English"), this);
+    UiStyles::applyButtonVariant(languageButton_, QStringLiteral("secondary"));
+    connect(languageButton_, &QPushButton::clicked, this, [this]() {
+        if (languageManager_) {
+            languageManager_->toggleLanguage();
+            done(LanguageSwitchResult);
+        }
+    });
+    layout->addWidget(languageButton_, 0, Qt::AlignRight);
 }
 
 UserInfo LoginDialog::currentUser() const

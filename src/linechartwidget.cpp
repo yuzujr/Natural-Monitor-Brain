@@ -2,6 +2,9 @@
 
 #include "databasemanager.h"
 
+#include <QApplication>
+#include <QPalette>
+
 #ifdef NATURAL_MONITOR_USE_QCUSTOMPLOT
 #include "qcustomplot.h"
 
@@ -39,6 +42,31 @@ double clampValue(double value, double minValue, double maxValue)
 {
     return qBound(minValue, value, maxValue);
 }
+
+bool isDarkPalette(const QPalette &palette)
+{
+    return palette.color(QPalette::Window).lightnessF() < 0.5;
+}
+
+QColor chartBackgroundColor(const QPalette &palette)
+{
+    return isDarkPalette(palette) ? QColor(QStringLiteral("#121417")) : QColor(QStringLiteral("#f6f7f9"));
+}
+
+QColor chartGridColor(const QPalette &palette)
+{
+    return isDarkPalette(palette) ? QColor(QStringLiteral("#4d5560")) : QColor(QStringLiteral("#bcc4ce"));
+}
+
+QColor chartAxisColor(const QPalette &palette)
+{
+    return isDarkPalette(palette) ? QColor(QStringLiteral("#f2f5f8")) : QColor(QStringLiteral("#1b232c"));
+}
+
+QColor chartBorderColor(const QPalette &palette)
+{
+    return isDarkPalette(palette) ? QColor(QStringLiteral("#6e7782")) : QColor(QStringLiteral("#c8cfd7"));
+}
 }
 
 LineChartWidget::LineChartWidget(QWidget *parent)
@@ -63,15 +91,15 @@ LineChartWidget::LineChartWidget(QWidget *parent)
     customPlot_->yAxis->setRange(0.0, 1.0);
     layout->addWidget(customPlot_, 1);
 
-    auto *legendRow = new QWidget(this);
-    legendRow->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    legendRow->setMaximumHeight(30);
-    auto *legendLayout = new QHBoxLayout(legendRow);
+    legendRow_ = new QWidget(this);
+    legendRow_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    legendRow_->setMaximumHeight(30);
+    auto *legendLayout = new QHBoxLayout(legendRow_);
     legendLayout->setContentsMargins(4, 0, 4, 0);
     legendLayout->setSpacing(12);
 
     auto addLegendItem = [&](const QString &labelText, const QColor &color, Qt::PenStyle penStyle) {
-        auto *item = new QWidget(legendRow);
+        auto *item = new QWidget(legendRow_);
         item->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
         auto *itemLayout = new QHBoxLayout(item);
         itemLayout->setContentsMargins(0, 0, 0, 0);
@@ -102,10 +130,12 @@ LineChartWidget::LineChartWidget(QWidget *parent)
     addLegendItem(tr("湿度"), QColor(80, 140, 220), Qt::SolidLine);
     addLegendItem(tr("PM2.5"), QColor(240, 170, 60), Qt::SolidLine);
     addLegendItem(tr("CO2"), QColor(100, 180, 120), Qt::SolidLine);
-    addLegendItem(tr("预测"), palette().color(QPalette::Text), Qt::DashLine);
+    addLegendItem(tr("预测"), QApplication::palette().color(QPalette::Text), Qt::DashLine);
     legendLayout->addStretch(1);
-    layout->addWidget(legendRow, 0);
+    layout->addWidget(legendRow_, 0);
 #endif
+
+    refreshThemeStyles();
 }
 
 void LineChartWidget::addSample(const EnvSample &sample)
@@ -153,6 +183,62 @@ void LineChartWidget::setMaxPoints(int maxPoints)
 #endif
 }
 
+void LineChartWidget::refreshThemeStyles()
+{
+#ifdef NATURAL_MONITOR_USE_QCUSTOMPLOT
+    if (customPlot_) {
+        const QPalette chartPalette = QApplication::palette();
+        const QColor background = chartBackgroundColor(chartPalette);
+        const QColor axis = chartAxisColor(chartPalette);
+        const QColor grid = chartGridColor(chartPalette);
+        const QColor border = chartBorderColor(chartPalette);
+
+        QPalette plotPalette = customPlot_->palette();
+        plotPalette.setColor(QPalette::Window, background);
+        plotPalette.setColor(QPalette::Base, background);
+        plotPalette.setColor(QPalette::Text, axis);
+        plotPalette.setColor(QPalette::WindowText, axis);
+        customPlot_->setPalette(plotPalette);
+        customPlot_->setAutoFillBackground(true);
+
+        customPlot_->setBackground(background);
+        customPlot_->axisRect()->setBackground(background);
+
+        customPlot_->xAxis->setBasePen(QPen(axis, 1));
+        customPlot_->yAxis->setBasePen(QPen(axis, 1));
+        customPlot_->xAxis->setTickPen(QPen(axis, 1));
+        customPlot_->yAxis->setTickPen(QPen(axis, 1));
+        customPlot_->xAxis->setSubTickPen(QPen(axis, 1));
+        customPlot_->yAxis->setSubTickPen(QPen(axis, 1));
+        customPlot_->xAxis->setTickLabelColor(axis);
+        customPlot_->yAxis->setTickLabelColor(axis);
+        customPlot_->xAxis->setLabelColor(axis);
+        customPlot_->yAxis->setLabelColor(axis);
+        customPlot_->xAxis->grid()->setPen(QPen(grid, 1, Qt::DotLine));
+        customPlot_->yAxis->grid()->setPen(QPen(grid, 1, Qt::DotLine));
+        customPlot_->xAxis->grid()->setSubGridVisible(false);
+        customPlot_->yAxis->grid()->setSubGridVisible(false);
+        customPlot_->axisRect()->setBackground(QBrush(background));
+        customPlot_->axisRect()->setRangeDrag(Qt::Horizontal);
+        customPlot_->axisRect()->setRangeZoom(Qt::Horizontal);
+        customPlot_->plotLayout()->setMargins(QMargins(6, 6, 6, 6));
+        customPlot_->setStyleSheet(QString(
+            "QWidget { background: %1; color: %2; border: 1px solid %3; border-radius: 10px; }"
+        ).arg(background.name(QColor::HexRgb), axis.name(QColor::HexRgb), border.name(QColor::HexRgb)));
+
+        if (legendRow_) {
+            legendRow_->setStyleSheet(QString(
+                "QWidget { background: %1; color: %2; } QLabel { color: %2; background: transparent; }"
+            ).arg(background.name(QColor::HexRgb), axis.name(QColor::HexRgb)));
+        }
+
+        customPlot_->replot();
+    }
+#endif
+
+    update();
+}
+
 QVector<double> LineChartWidget::predictSeries(const QVector<double> &series, double minValue, double maxValue) const
 {
     QVector<double> predicted;
@@ -183,6 +269,8 @@ void LineChartWidget::refreshCustomPlot()
     if (!customPlot_) {
         return;
     }
+
+    refreshThemeStyles();
 
     customPlot_->clearGraphs();
     struct SeriesMeta {
@@ -251,13 +339,17 @@ void LineChartWidget::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing, true);
 
     const QRectF bounds = rect();
-    const QColor windowColor = palette().color(QPalette::Window);
-    const QColor baseColor = palette().color(QPalette::Base);
+    const QPalette chartPalette = QApplication::palette();
+    const QColor windowColor = chartBackgroundColor(chartPalette).darker(isDarkPalette(chartPalette) ? 125 : 100);
+    const QColor baseColor = chartBackgroundColor(chartPalette);
+    const QColor gridColor = chartGridColor(chartPalette);
+    const QColor axisColor = chartAxisColor(chartPalette);
+    const QColor borderColor = chartBorderColor(chartPalette);
     painter.fillRect(bounds, windowColor);
 
     const QRectF plot = bounds.adjusted(50, 20, -20, -40);
     painter.fillRect(plot, baseColor);
-    painter.setPen(QPen(palette().color(QPalette::Midlight), 1));
+    painter.setPen(QPen(gridColor, 1));
 
     const int gridLines = 5;
     for (int i = 0; i <= gridLines; ++i) {
@@ -265,7 +357,7 @@ void LineChartWidget::paintEvent(QPaintEvent *event)
         painter.drawLine(QPointF(plot.left(), y), QPointF(plot.right(), y));
     }
 
-    painter.setPen(QPen(palette().color(QPalette::Mid), 1));
+    painter.setPen(QPen(borderColor, 1));
     painter.drawRect(plot);
 
     auto drawSeries = [&](const QVector<double> &series, const QVector<double> &predicted,
@@ -310,7 +402,7 @@ void LineChartWidget::paintEvent(QPaintEvent *event)
     drawSeries(pm_, predictSeries(pm_, kPmMin, kPmMax), QColor(240, 170, 60), kPmMin, kPmMax);
     drawSeries(co2_, predictSeries(co2_, kCo2Min, kCo2Max), QColor(100, 180, 120), kCo2Min, kCo2Max);
 
-    painter.setPen(QPen(palette().color(QPalette::Text), 1));
+    painter.setPen(QPen(axisColor, 1));
     painter.drawText(QRectF(plot.left(), plot.bottom() + 8, plot.width(), 20),
                      Qt::AlignLeft | Qt::AlignVCenter,
                      tr("最近%1条采样数据，虚线表示接下来%2条预测").arg(maxPoints_).arg(predictionPoints_));
@@ -329,7 +421,7 @@ void LineChartWidget::paintEvent(QPaintEvent *event)
         const double x = legendTop.x() + legendSpacing * i;
         painter.setPen(QPen(items[i].color, 3));
         painter.drawLine(QPointF(x, legendTop.y()), QPointF(x + 18, legendTop.y()));
-        painter.setPen(palette().color(QPalette::Text));
+        painter.setPen(axisColor);
         painter.drawText(QPointF(x + 22, legendTop.y() + 4), items[i].label);
     }
 }

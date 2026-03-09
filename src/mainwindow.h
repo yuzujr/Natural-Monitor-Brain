@@ -23,6 +23,7 @@ class SampleRepository;
 class SettingsPageWidget;
 class ThemeManager;
 class UdpSensorClient;
+class LanguageManager;
 class UserRepository;
 class UserManagementPageWidget;
 
@@ -31,11 +32,13 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(DatabaseManager *db, ThemeManager *themeManager, const UserInfo &user, QWidget *parent = nullptr);
+    explicit MainWindow(DatabaseManager *db, ThemeManager *themeManager, LanguageManager *languageManager,
+                        const UserInfo &user, QWidget *parent = nullptr);
     ~MainWindow();
 
 signals:
     void logoutRequested();
+    void relaunchRequested();
 
 private slots:
     void handleDataTick();
@@ -52,6 +55,7 @@ private slots:
     void handleRestoreDatabase();
     void handleLogout();
     void handleRefreshIntervalChanged(int ms);
+    void handleLanguageToggle();
     void handleSensorSampleReceived(const EnvSample &sample);
     void handleSensorRequestFailed(const QString &message);
     void handleThemeModeChanged(const QString &modeKey);
@@ -79,6 +83,7 @@ private:
     AlarmRepository *alarmRepository_ = nullptr;
     AlarmService *alarmService_ = nullptr;
     ThemeManager *themeManager_ = nullptr;
+    LanguageManager *languageManager_ = nullptr;
     UdpSensorClient *sensorClient_ = nullptr;
     UserInfo currentUser_;
 

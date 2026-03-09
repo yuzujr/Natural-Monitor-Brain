@@ -2,6 +2,7 @@
 #include "logindialog.h"
 #include "mainwindow.h"
 #include "common/uistyles.h"
+#include "languageutils.h"
 #include "themeutils.h"
 
 #include <QApplication>
@@ -22,6 +23,8 @@ int main(int argc, char *argv[])
 
     ThemeManager themeManager;
     themeManager.initialize();
+    LanguageManager languageManager;
+    languageManager.initialize();
     QSettings settings;
     const ThemeManager::ThemeMode startupThemeMode = ThemeManager::themeModeFromKey(
         settings.value(QStringLiteral("theme_mode"), QStringLiteral("system")).toString());
@@ -38,29 +41,19 @@ int main(int argc, char *argv[])
     }
 
     std::function<void()> launchLoginFlow;
-    launchLoginFlow = [&app, &db, &themeManager, &launchLoginFlow]() {
-        auto *login = new LoginDialog(&db);
-        QObject::connect(&themeManager, &ThemeManager::themeChanged, login, [login]() {
-            UiStyles::applyDialogStyle(login);
-            login->setPalette(QApplication::palette());
-            login->update();
-        });
-
-        if (login->exec() != QDialog::Accepted) {
-            login->deleteLater();
-            app.quit();
-            return;
-        }
-
-        const UserInfo user = login->currentUser();
-        login->deleteLater();
-
-        auto *window = new MainWindow(&db, &themeManager, user);
+    std::function<void(const UserInfo &)> launchMainWindow;
+    launchMainWindow = [&app, &db, &themeManager, &languageManager, &launchLoginFlow, &launchMainWindow](const UserInfo &user) {
+        auto *window = new MainWindow(&db, &themeManager, &languageManager, user);
         auto *relaunchAfterClose = new bool(false);
         QObject::connect(window, &MainWindow::logoutRequested, window, [window, relaunchAfterClose, &launchLoginFlow]() {
             *relaunchAfterClose = true;
             window->deleteLater();
-            QTimer::singleShot(0, [launchLoginFlow]() mutable { launchLoginFlow(); });
+            QTimer::singleShot(0, [&launchLoginFlow]() { launchLoginFlow(); });
+        });
+        QObject::connect(window, &MainWindow::relaunchRequested, window, [window, relaunchAfterClose, user, &launchMainWindow]() {
+            *relaunchAfterClose = true;
+            window->deleteLater();
+            QTimer::singleShot(0, [launchMainWindow, user]() mutable { launchMainWindow(user); });
         });
         QObject::connect(window, &QObject::destroyed, &app, [&app, relaunchAfterClose]() {
             const bool shouldQuit = !(*relaunchAfterClose);
@@ -70,6 +63,33 @@ int main(int argc, char *argv[])
             }
         });
         window->show();
+    };
+
+    launchLoginFlow = [&app, &db, &themeManager, &languageManager, &launchLoginFlow, &launchMainWindow]() {
+        auto *login = new LoginDialog(&db, &languageManager);
+        QObject::connect(&themeManager, &ThemeManager::themeChanged, login, [login]() {
+            UiStyles::applyDialogStyle(login);
+            login->setPalette(QApplication::palette());
+            login->update();
+        });
+
+        const int result = login->exec();
+        if (result == LoginDialog::LanguageSwitchResult) {
+            login->deleteLater();
+            QTimer::singleShot(0, [&launchLoginFlow]() { launchLoginFlow(); });
+            return;
+        }
+
+        if (result != QDialog::Accepted) {
+            login->deleteLater();
+            app.quit();
+            return;
+        }
+
+        const UserInfo user = login->currentUser();
+        login->deleteLater();
+
+        launchMainWindow(user);
     };
 
     QTimer::singleShot(0, [&launchLoginFlow]() { launchLoginFlow(); });
