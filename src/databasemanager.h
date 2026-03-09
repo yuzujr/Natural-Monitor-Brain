@@ -1,9 +1,12 @@
 #ifndef DATABASEMANAGER_H
 #define DATABASEMANAGER_H
 
-#include <QObject>
 #include <QDateTime>
 #include <QSqlDatabase>
+
+class AlarmRepository;
+class SampleRepository;
+class UserRepository;
 
 struct UserInfo
 {
@@ -47,43 +50,35 @@ struct AlarmRecord
     double threshold = 0.0;
 };
 
-class DatabaseManager : public QObject
+class DatabaseManager
 {
-    Q_OBJECT
 public:
-    explicit DatabaseManager(QObject *parent = nullptr);
+    DatabaseManager();
+    ~DatabaseManager();
 
     bool open();
     void close();
     bool reopen();
     QString lastError() const;
     QString databasePath() const;
+    QSqlDatabase database() const;
+    void setLastError(const QString &error);
+    QString hashPassword(const QString &password) const;
 
-    bool validateUser(const QString &username, const QString &password, UserInfo *outUser);
-    bool addUser(const QString &username, const QString &password, const QString &role);
-    bool resetPassword(const QString &username, const QString &newPassword);
-    QList<UserInfo> listUsers();
-    bool updateUserRole(int id, const QString &role);
-    bool deleteUser(int id);
-    bool setUserPassword(int id, const QString &newPassword);
-
-    bool insertSample(const EnvSample &sample);
-    QList<EnvSample> querySamples(const QDateTime &start, const QDateTime &end, int limit);
-    EnvStats queryStats(const QDateTime &start, const QDateTime &end);
-
-    bool insertAlarm(const QString &param, double value, double threshold);
-    QList<AlarmRecord> queryAlarms(const QDateTime &start, const QDateTime &end, int limit);
-    bool clearAlarms();
-    bool deleteSamplesBefore(const QDateTime &cutoff);
+    UserRepository *userRepository() const;
+    SampleRepository *sampleRepository() const;
+    AlarmRepository *alarmRepository() const;
 
 private:
     bool initSchema();
     bool ensureDefaultAdmin();
-    QString hashPassword(const QString &password) const;
 
     QSqlDatabase db_;
     QString lastError_;
     QString dbPath_;
+    UserRepository *userRepository_ = nullptr;
+    SampleRepository *sampleRepository_ = nullptr;
+    AlarmRepository *alarmRepository_ = nullptr;
 };
 
 #endif // DATABASEMANAGER_H

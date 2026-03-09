@@ -1,5 +1,8 @@
 #include "logindialog.h"
 
+#include "common/uistyles.h"
+#include "repositories/userrepository.h"
+
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QLabel>
@@ -12,10 +15,12 @@
 LoginDialog::LoginDialog(DatabaseManager *db, QWidget *parent)
     : QDialog(parent)
     , db_(db)
+    , userRepository_(db ? db->userRepository() : nullptr)
 {
     setWindowTitle(tr("用户登录"));
     setModal(true);
     resize(420, 260);
+    UiStyles::applyDialogStyle(this);
 
     auto *layout = new QVBoxLayout(this);
     tabs_ = new QTabWidget(this);
@@ -29,7 +34,7 @@ LoginDialog::LoginDialog(DatabaseManager *db, QWidget *parent)
     loginForm->addRow(tr("密码"), loginPassEdit_);
 
     auto *loginInfo = new QLabel(tr("默认管理员: admin / admin123"), loginPage);
-    loginInfo->setStyleSheet(QStringLiteral("color: #666;"));
+    loginInfo->setStyleSheet(UiStyles::secondaryTextStyle());
     loginForm->addRow(loginInfo);
 
     auto *loginButtons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, loginPage);
@@ -85,7 +90,7 @@ UserInfo LoginDialog::currentUser() const
 
 void LoginDialog::handleLogin()
 {
-    if (!db_) {
+    if (!userRepository_) {
         QMessageBox::critical(this, tr("错误"), tr("数据库未初始化"));
         return;
     }
@@ -98,7 +103,7 @@ void LoginDialog::handleLogin()
     }
 
     UserInfo user;
-    if (!db_->validateUser(username, password, &user)) {
+    if (!userRepository_->validateUser(username, password, &user)) {
         QMessageBox::warning(this, tr("登录失败"), tr("用户名或密码错误"));
         return;
     }
@@ -109,7 +114,7 @@ void LoginDialog::handleLogin()
 
 void LoginDialog::handleRegister()
 {
-    if (!db_) {
+    if (!userRepository_) {
         QMessageBox::critical(this, tr("错误"), tr("数据库未初始化"));
         return;
     }
@@ -126,7 +131,7 @@ void LoginDialog::handleRegister()
         return;
     }
 
-    if (!db_->addUser(username, password, QStringLiteral("user"))) {
+    if (!userRepository_->addUser(username, password, QStringLiteral("user"))) {
         QMessageBox::warning(this, tr("注册失败"), db_->lastError());
         return;
     }
@@ -140,7 +145,7 @@ void LoginDialog::handleRegister()
 
 void LoginDialog::handleReset()
 {
-    if (!db_) {
+    if (!userRepository_) {
         QMessageBox::critical(this, tr("错误"), tr("数据库未初始化"));
         return;
     }
@@ -157,7 +162,7 @@ void LoginDialog::handleReset()
         return;
     }
 
-    if (!db_->resetPassword(username, password)) {
+    if (!userRepository_->resetPassword(username, password)) {
         QMessageBox::warning(this, tr("重置失败"), tr("未找到该用户"));
         return;
     }

@@ -7,6 +7,7 @@
 
 class QLineEdit;
 class QTabWidget;
+class UserRepository;
 
 class LoginDialog : public QDialog
 {
@@ -23,6 +24,7 @@ private slots:
 
 private:
     DatabaseManager *db_ = nullptr;
+    UserRepository *userRepository_ = nullptr;
     UserInfo currentUser_;
 
     QTabWidget *tabs_ = nullptr;

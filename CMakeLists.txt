@@ -13,18 +13,42 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Sql)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql)
 
 set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
-        databasemanager.cpp
-        databasemanager.h
-        logindialog.cpp
-        logindialog.h
-        linechartwidget.cpp
-        linechartwidget.h
-        themeutils.cpp
-        themeutils.h
+    src/main.cpp
+    src/mainwindow.cpp
+    src/mainwindow.h
+    src/databasemanager.cpp
+    src/databasemanager.h
+    src/logindialog.cpp
+    src/logindialog.h
+    src/linechartwidget.cpp
+    src/linechartwidget.h
+    src/themeutils.cpp
+    src/themeutils.h
+    src/common/moduletypes.h
+    src/common/uistyles.cpp
+    src/common/uistyles.h
+    src/repositories/alarmrepository.cpp
+    src/repositories/alarmrepository.h
+    src/repositories/samplerepository.cpp
+    src/repositories/samplerepository.h
+    src/repositories/userrepository.cpp
+    src/repositories/userrepository.h
+    src/services/csvexporter.cpp
+    src/services/csvexporter.h
+    src/services/alarmservice.cpp
+    src/services/alarmservice.h
+    src/pages/realtimepagewidget.cpp
+    src/pages/realtimepagewidget.h
+    src/pages/historypagewidget.cpp
+    src/pages/historypagewidget.h
+    src/pages/alarmpagewidget.cpp
+    src/pages/alarmpagewidget.h
+    src/pages/exportpagewidget.cpp
+    src/pages/exportpagewidget.h
+    src/pages/settingspagewidget.cpp
+    src/pages/settingspagewidget.h
+    src/pages/usermanagementpagewidget.cpp
+    src/pages/usermanagementpagewidget.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -51,6 +75,14 @@ else()
 endif()
 
 target_link_libraries(Natural-Monitor-Brain PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Sql)
+
+target_include_directories(Natural-Monitor-Brain PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/pages
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/repositories
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/services
+)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

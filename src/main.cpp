@@ -1,6 +1,7 @@
 #include "databasemanager.h"
 #include "logindialog.h"
 #include "mainwindow.h"
+#include "common/uistyles.h"
 #include "themeutils.h"
 
 #include <QApplication>
@@ -26,6 +27,7 @@ int main(int argc, char *argv[])
 
     LoginDialog login(&db);
     QObject::connect(&themeManager, &ThemeManager::themeChanged, &login, [&login]() {
+        UiStyles::applyDialogStyle(&login);
         login.setPalette(QApplication::palette());
         login.update();
     });
