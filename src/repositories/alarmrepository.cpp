@@ -2,12 +2,12 @@
 
 #include <QSqlError>
 #include <QSqlQuery>
-
+//初始化仓库类实例，建立与数据库管理器的联系。
 AlarmRepository::AlarmRepository(DatabaseManager *db)
     : db_(db)
 {
 }
-
+//当系统判定发生异常时，将报警的详细信息永久保存到数据库中。
 bool AlarmRepository::insertAlarm(const QString &param, double value, double threshold, const QDateTime &timestamp)
 {
     QSqlQuery query(db_->database());
@@ -23,7 +23,7 @@ bool AlarmRepository::insertAlarm(const QString &param, double value, double thr
     }
     return true;
 }
-
+//根据用户在界面上选择的时间范围，从数据库中提取历史报警记录。
 QList<AlarmRecord> AlarmRepository::queryAlarms(const QDateTime &start, const QDateTime &end, int limit)
 {
     QList<AlarmRecord> result;
@@ -49,7 +49,7 @@ QList<AlarmRecord> AlarmRepository::queryAlarms(const QDateTime &start, const QD
     }
     return result;
 }
-
+//实现界面上的“一键清空”功能。
 bool AlarmRepository::clearAlarms()
 {
     QSqlQuery query(db_->database());

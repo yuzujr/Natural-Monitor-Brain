@@ -2,11 +2,12 @@
 
 #include "repositories/alarmrepository.h"
 
+//初始化报警服务类实例。
 AlarmService::AlarmService(AlarmRepository *alarmRepository)
     : alarmRepository_(alarmRepository)
 {
 }
-
+//对传入的单个环境样本进行多维度报警判定，并返回所有触发的报警事件列表。
 QList<AlarmEvent> AlarmService::evaluateSample(const EnvSample &sample, const AlarmSettings &settings)
 {
     QList<AlarmEvent> events;
@@ -26,6 +27,7 @@ QList<AlarmEvent> AlarmService::evaluateSample(const EnvSample &sample, const Al
     return events;
 }
 
+//针对特定的单一指标（如温度）执行具体的判定逻辑。
 void AlarmService::evaluateMetric(const QString &param, double value, double threshold, const QDateTime &now,
                                   int cooldownSeconds, QDateTime &lastTriggeredAt, QList<AlarmEvent> &events)
 {

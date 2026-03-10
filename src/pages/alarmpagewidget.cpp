@@ -15,6 +15,7 @@
 
 #include "common/uistyles.h"
 
+//负责构建整个报警管理页面的 UI 布局
 AlarmPageWidget::AlarmPageWidget(QWidget *parent)
     : QWidget(parent)
 {
@@ -105,6 +106,7 @@ AlarmPageWidget::AlarmPageWidget(QWidget *parent)
     layout->addWidget(logGroup);
 }
 
+//该函数负责将 UI 界面上的用户输入转化为逻辑层可用的数据结构
 AlarmSettings AlarmPageWidget::alarmSettings() const
 {
     AlarmSettings settings;
@@ -116,24 +118,24 @@ AlarmSettings AlarmPageWidget::alarmSettings() const
     settings.co2Threshold = co2Threshold_->value();
     return settings;
 }
-
+//时间获取
 QDateTime AlarmPageWidget::startDateTime() const
 {
     return startEdit_->dateTime();
 }
-
+//时间获取
 QDateTime AlarmPageWidget::endDateTime() const
 {
     return endEdit_->dateTime();
 }
-
+//时间重置
 void AlarmPageWidget::resetTimeRangeToRecentWindow()
 {
     const QDateTime now = QDateTime::currentDateTime();
     startEdit_->setDateTime(now.addSecs(-3600));
     endEdit_->setDateTime(now);
 }
-
+//将结束时间自动更新为当前时刻
 void AlarmPageWidget::followEndTimeToNow()
 {
     const QDateTime now = QDateTime::currentDateTime();
@@ -142,7 +144,7 @@ void AlarmPageWidget::followEndTimeToNow()
         startEdit_->setDateTime(now.addSecs(-3600));
     }
 }
-
+//将外部传入的报警配置应用到界面控件上
 void AlarmPageWidget::setAlarmSettings(const AlarmSettings &settings)
 {
     enabledCheck_->setChecked(settings.enabled);
@@ -153,6 +155,7 @@ void AlarmPageWidget::setAlarmSettings(const AlarmSettings &settings)
     co2Threshold_->setValue(settings.co2Threshold);
 }
 
+//将从数据库查询到的报警历史数据显示在 UI 表格中
 void AlarmPageWidget::setAlarmRecords(const QList<AlarmRecord> &records)
 {
     alarmTable_->setRowCount(records.size());
