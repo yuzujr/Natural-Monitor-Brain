@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(random_udp VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
