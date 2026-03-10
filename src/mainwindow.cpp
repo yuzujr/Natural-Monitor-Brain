@@ -14,6 +14,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include <QtGlobal>
+#include <QThread>
 
 #include "common/uistyles.h"
 #include "common/progressdialog.h"
@@ -292,6 +293,7 @@ void MainWindow::handleExportHistory(const QDateTime &start, const QDateTime &en
 
     bool success = CsvExporter::exportSamples(samples, path, selection, [&](int current, int total) {
         progressDialog.setProgress(current, total);
+        QThread::msleep(10);
         QApplication::processEvents();
     });
 
@@ -352,6 +354,7 @@ void MainWindow::handleExportAlarms(const QDateTime &start, const QDateTime &end
 
     bool success = CsvExporter::exportAlarms(records, path, [&](int current, int total) {
         progressDialog.setProgress(current, total);
+        QThread::msleep(10);
         QApplication::processEvents();
     });
 
