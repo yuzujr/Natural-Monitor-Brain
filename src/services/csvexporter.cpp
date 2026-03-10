@@ -19,7 +19,8 @@ void setUtf8(QTextStream &out)
 
 namespace CsvExporter {
 
-bool exportSamples(const QList<EnvSample> &samples, const QString &path, const SampleSelection &selection)
+bool exportSamples(const QList<EnvSample> &samples, const QString &path, const SampleSelection &selection,
+                    const ProgressCallback &callback)
 {
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -45,7 +46,9 @@ bool exportSamples(const QList<EnvSample> &samples, const QString &path, const S
     }
     out << headers.join(',') << "\n";
 
-    for (const EnvSample &sample : samples) {
+    const int total = samples.size();
+    for (int i = 0; i < total; ++i) {
+        const EnvSample &sample = samples.at(i);
         QStringList row;
         row << sample.ts.toString("yyyy-MM-dd HH:mm:ss");
         if (selection.temperature) {
@@ -61,12 +64,17 @@ bool exportSamples(const QList<EnvSample> &samples, const QString &path, const S
             row << QString::number(sample.co2, 'f', 0);
         }
         out << row.join(',') << "\n";
+
+        if (callback) {
+            callback(i + 1, total);
+        }
     }
 
     return true;
 }
 
-bool exportAlarms(const QList<AlarmRecord> &records, const QString &path)
+bool exportAlarms(const QList<AlarmRecord> &records, const QString &path,
+                  const ProgressCallback &callback)
 {
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -77,12 +85,18 @@ bool exportAlarms(const QList<AlarmRecord> &records, const QString &path)
     setUtf8(out);
     out << QObject::tr("时间,参数,值,阈值") << "\n";
 
-    for (const AlarmRecord &record : records) {
+    const int total = records.size();
+    for (int i = 0; i < total; ++i) {
+        const AlarmRecord &record = records.at(i);
         out << record.ts.toString("yyyy-MM-dd HH:mm:ss") << ","
             << record.param << ","
             << QString::number(record.value, 'f', 1) << ","
             << QString::number(record.threshold, 'f', 1)
             << "\n";
+
+        if (callback) {
+            callback(i + 1, total);
+        }
     }
 
     return true;

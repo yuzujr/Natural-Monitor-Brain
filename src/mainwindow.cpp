@@ -16,6 +16,7 @@
 #include <QtGlobal>
 
 #include "common/uistyles.h"
+#include "common/progressdialog.h"
 #include "languageutils.h"
 #include "pages/alarmpagewidget.h"
 #include "pages/exportpagewidget.h"
@@ -208,8 +209,17 @@ void MainWindow::handleHistoryQuery(const QDateTime &start, const QDateTime &end
         return;
     }
 
+    ProgressDialog progressDialog(this);
+    progressDialog.setLabelText(tr("正在查询历史数据..."));
+    progressDialog.setIndeterminate(true);
+    progressDialog.show();
+    QApplication::processEvents();
+
     const QList<EnvSample> samples = sampleRepository_->querySamples(start, end, kDefaultLimit);
     const EnvStats stats = sampleRepository_->queryStats(start, end);
+
+    progressDialog.close();
+
     historyPage_->setQueryResult(samples, stats, kDefaultLimit);
 }
 
@@ -224,7 +234,16 @@ void MainWindow::handleRefreshAlarms(const QDateTime &start, const QDateTime &en
         return;
     }
 
+    ProgressDialog progressDialog(this);
+    progressDialog.setLabelText(tr("正在查询报警记录..."));
+    progressDialog.setIndeterminate(true);
+    progressDialog.show();
+    QApplication::processEvents();
+
     const QList<AlarmRecord> records = alarmRepository_->queryAlarms(start, end, kDefaultLimit);
+
+    progressDialog.close();
+
     alarmPage_->setAlarmRecords(records);
 }
 
@@ -266,7 +285,19 @@ void MainWindow::handleExportHistory(const QDateTime &start, const QDateTime &en
         return;
     }
 
-    if (!CsvExporter::exportSamples(samples, path, selection)) {
+    ProgressDialog progressDialog(this);
+    progressDialog.setLabelText(tr("正在导出历史数据..."));
+    progressDialog.setIndeterminate(false);
+    progressDialog.show();
+
+    bool success = CsvExporter::exportSamples(samples, path, selection, [&](int current, int total) {
+        progressDialog.setProgress(current, total);
+        QApplication::processEvents();
+    });
+
+    progressDialog.close();
+
+    if (!success) {
         QMessageBox::warning(this, tr("导出失败"), tr("无法写入CSV文件"));
         return;
     }
@@ -314,7 +345,19 @@ void MainWindow::handleExportAlarms(const QDateTime &start, const QDateTime &end
         return;
     }
 
-    if (!CsvExporter::exportAlarms(records, path)) {
+    ProgressDialog progressDialog(this);
+    progressDialog.setLabelText(tr("正在导出报警记录..."));
+    progressDialog.setIndeterminate(false);
+    progressDialog.show();
+
+    bool success = CsvExporter::exportAlarms(records, path, [&](int current, int total) {
+        progressDialog.setProgress(current, total);
+        QApplication::processEvents();
+    });
+
+    progressDialog.close();
+
+    if (!success) {
         QMessageBox::warning(this, tr("导出失败"), tr("无法写入CSV文件"));
         return;
     }

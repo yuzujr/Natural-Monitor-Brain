@@ -72,6 +72,8 @@ set(PROJECT_SOURCES
     common/uistyles.h
     common/animatedtabwidget.cpp
     common/animatedtabwidget.h
+    common/progressdialog.cpp
+    common/progressdialog.h
     repositories/alarmrepository.cpp
     repositories/alarmrepository.h
     repositories/samplerepository.cpp
