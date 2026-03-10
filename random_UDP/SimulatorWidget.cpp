@@ -1,4 +1,4 @@
-#include "simulatorwidget.h"
+#include "SimulatorWidget.h"
 #include <QVBoxLayout>
 #include <QGridLayout>
 #include <QLabel>
