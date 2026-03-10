@@ -60,33 +60,29 @@ SettingsPageWidget::SettingsPageWidget(QWidget *parent)
     settingsLayout->addWidget(intervalCombo_, 0, 1);
     settingsLayout->addWidget(new QLabel(tr("主题模式"), settingsGroup), 1, 0);
     settingsLayout->addWidget(themeModeCombo_, 1, 1);
-    settingsLayout->addWidget(new QLabel(tr("主题状态"), settingsGroup), 2, 0);
-
-    themeStatusLabel_ = new QLabel(tr("跟随系统默认主题"), settingsGroup);
-    themeStatusLabel_->setStyleSheet(UiStyles::secondaryTextStyle());
-    settingsLayout->addWidget(themeStatusLabel_, 2, 1);
 
     auto *reloadThemeButton = new QPushButton(tr("重新加载主题"), settingsGroup);
     UiStyles::applyButtonVariant(reloadThemeButton, QStringLiteral("secondary"));
     connect(reloadThemeButton, &QPushButton::clicked, this, &SettingsPageWidget::reloadThemeRequested);
-    settingsLayout->addWidget(reloadThemeButton, 2, 2);
+    settingsLayout->addWidget(reloadThemeButton, 1, 2);
 
-    settingsLayout->addWidget(new QLabel(tr("界面语言"), settingsGroup), 3, 0);
-    languageStatusLabel_ = new QLabel(tr("当前语言"), settingsGroup);
-    languageStatusLabel_->setStyleSheet(UiStyles::secondaryTextStyle());
-    settingsLayout->addWidget(languageStatusLabel_, 3, 1);
-    languageToggleButton_ = new QPushButton(tr("切换到 English"), settingsGroup);
-    UiStyles::applyButtonVariant(languageToggleButton_, QStringLiteral("secondary"));
-    connect(languageToggleButton_, &QPushButton::clicked, this, &SettingsPageWidget::languageToggleRequested);
-    settingsLayout->addWidget(languageToggleButton_, 3, 2);
+    settingsLayout->addWidget(new QLabel(tr("界面语言"), settingsGroup), 2, 0);
+    languageCombo_ = new QComboBox(settingsGroup);
+    languageCombo_->addItem(tr("中文"), QStringLiteral("zh"));
+    languageCombo_->addItem(QStringLiteral("English"), QStringLiteral("en"));
+    connect(languageCombo_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            [this](int index) {
+                emit languageChanged(languageCombo_->itemData(index).toString());
+            });
+    settingsLayout->addWidget(languageCombo_, 2, 1);
 
-    settingsLayout->addWidget(new QLabel(tr("报警提示"), settingsGroup), 4, 0);
-    settingsLayout->addWidget(soundCombo_, 4, 1);
+    settingsLayout->addWidget(new QLabel(tr("报警提示"), settingsGroup), 3, 0);
+    settingsLayout->addWidget(soundCombo_, 3, 1);
 
     auto *applyButton = new QPushButton(tr("应用设置"), settingsGroup);
     UiStyles::applyButtonVariant(applyButton, QStringLiteral("primary"));
     connect(applyButton, &QPushButton::clicked, this, &SettingsPageWidget::applyRequested);
-    settingsLayout->addWidget(applyButton, 5, 0, 1, 3);
+    settingsLayout->addWidget(applyButton, 4, 0, 1, 3);
     layout->addWidget(settingsGroup);
 
     auto *dbGroup = new QGroupBox(tr("数据库维护"), this);
@@ -163,22 +159,25 @@ QString SettingsPageWidget::themeMode() const
     return themeModeCombo_->currentData().toString();
 }
 
-void SettingsPageWidget::setThemeStatus(const QString &text)
-{
-    themeStatusLabel_->setText(text);
-}
-
 void SettingsPageWidget::setDatabasePath(const QString &path)
 {
     dbPathLabel_->setText(path);
 }
 
-void SettingsPageWidget::setLanguageInfo(const QString &currentLanguage, const QString &buttonText)
+void SettingsPageWidget::setLanguageKey(const QString &languageKey)
 {
-    if (languageStatusLabel_) {
-        languageStatusLabel_->setText(currentLanguage);
+    if (!languageCombo_) {
+        return;
     }
-    if (languageToggleButton_) {
-        languageToggleButton_->setText(buttonText);
+
+    const int index = languageCombo_->findData(languageKey);
+    if (index >= 0 && languageCombo_->currentIndex() != index) {
+        QSignalBlocker blocker(languageCombo_);
+        languageCombo_->setCurrentIndex(index);
     }
+}
+
+QString SettingsPageWidget::languageKey() const
+{
+    return languageCombo_ ? languageCombo_->currentData().toString() : QStringLiteral("zh");
 }

@@ -93,7 +93,7 @@ MainWindow::MainWindow(DatabaseManager *db, ThemeManager *themeManager, Language
     connect(settingsPage_, &SettingsPageWidget::backupRequested, this, &MainWindow::handleBackupDatabase);
     connect(settingsPage_, &SettingsPageWidget::restoreRequested, this, &MainWindow::handleRestoreDatabase);
     connect(settingsPage_, &SettingsPageWidget::cleanupRequested, this, &MainWindow::handleCleanupData);
-    connect(settingsPage_, &SettingsPageWidget::languageToggleRequested, this, &MainWindow::handleLanguageToggle);
+    connect(settingsPage_, &SettingsPageWidget::languageChanged, this, &MainWindow::handleLanguageChanged);
     connect(settingsPage_, &SettingsPageWidget::reloadThemeRequested, this, [this]() {
         if (themeManager_) {
             themeManager_->reload();
@@ -432,9 +432,13 @@ void MainWindow::handleRefreshIntervalChanged(int ms)
     saveSettings();
 }
 
-void MainWindow::handleLanguageToggle()
+void MainWindow::handleLanguageChanged(const QString &languageKey)
 {
     if (!languageManager_) {
+        return;
+    }
+
+    if (languageKey == languageManager_->languageKey()) {
         return;
     }
 
@@ -442,7 +446,7 @@ void MainWindow::handleLanguageToggle()
         dataTimer_->stop();
     }
 
-    languageManager_->toggleLanguage();
+    languageManager_->setLanguage(LanguageManager::languageFromKey(languageKey));
     emit relaunchRequested();
     close();
 }
@@ -597,24 +601,12 @@ void MainWindow::updateThemeStatus()
     }
     if (!themeManager_) {
         settingsPage_->setThemeMode(QStringLiteral("system"));
-        settingsPage_->setThemeStatus(tr("跟随系统默认主题"));
-        return;
+    } else {
+        settingsPage_->setThemeMode(themeManager_->themeModeKey());
     }
 
-    settingsPage_->setThemeMode(themeManager_->themeModeKey());
-    const QString modeName = ThemeManager::themeModeDisplayName(themeManager_->themeMode());
-    const QString schemeName = themeManager_->currentSchemeName().isEmpty()
-        ? tr("未检测到")
-        : themeManager_->currentSchemeName();
-    const QString styleName = themeManager_->currentStyleName().isEmpty()
-        ? QApplication::style()->objectName()
-        : themeManager_->currentStyleName();
-    const QString statusText = tr("%1，当前效果: %2，样式: %3")
-        .arg(modeName, schemeName, styleName);
-    settingsPage_->setThemeStatus(statusText);
     if (languageManager_) {
-        settingsPage_->setLanguageInfo(languageManager_->currentLanguageDisplayName(),
-                                       languageManager_->nextLanguageButtonText());
+        settingsPage_->setLanguageKey(languageManager_->languageKey());
     }
 }
 
@@ -638,6 +630,9 @@ void MainWindow::loadSettings()
     settingsPage_->setRefreshInterval(refreshIntervalMs_);
     settingsPage_->setSoundMode(settings.value(QStringLiteral("alarm_sound"), QStringLiteral("beep")).toString());
     settingsPage_->setThemeMode(themeModeKey);
+    if (languageManager_) {
+        settingsPage_->setLanguageKey(languageManager_->languageKey());
+    }
     if (themeManager_) {
         themeManager_->setThemeMode(ThemeManager::themeModeFromKey(themeModeKey));
     }

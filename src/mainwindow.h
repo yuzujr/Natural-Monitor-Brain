@@ -55,7 +55,7 @@ private slots:
     void handleRestoreDatabase();
     void handleLogout();
     void handleRefreshIntervalChanged(int ms);
-    void handleLanguageToggle();
+    void handleLanguageChanged(const QString &languageKey);
     void handleSensorSampleReceived(const EnvSample &sample);
     void handleSensorRequestFailed(const QString &message);
     void handleThemeModeChanged(const QString &modeKey);

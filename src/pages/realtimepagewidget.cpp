@@ -1,11 +1,14 @@
 #include "realtimepagewidget.h"
 
+#include <QApplication>
+#include <QColor>
 #include <QComboBox>
 #include <QFrame>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPalette>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QSignalBlocker>
@@ -16,6 +19,57 @@
 
 namespace {
 constexpr int kDefaultMaxPoints = 50;
+
+bool isDarkPalette()
+{
+    return QApplication::palette().color(QPalette::Window).lightnessF() < 0.5;
+}
+
+QString toCss(const QColor &color)
+{
+    return color.name(QColor::HexRgb);
+}
+
+QString metricCardFrameStyle(const QString &accentColor)
+{
+    const QPalette palette = QApplication::palette();
+    const QColor base = palette.color(QPalette::Base);
+    const QColor border = isDarkPalette()
+        ? palette.color(QPalette::Mid).lighter(135)
+        : palette.color(QPalette::Midlight).darker(110);
+    const QColor accent(accentColor);
+    const QColor background = isDarkPalette() ? base.lighter(115) : base.lighter(103);
+    QColor tint = accent;
+    tint.setAlpha(isDarkPalette() ? 26 : 18);
+
+    return QString(
+               "QFrame {"
+               "  background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 %1, stop:1 %2);"
+               "  border: 1px solid %3;"
+               "  border-radius: 18px;"
+               "}")
+        .arg(toCss(background), tint.name(QColor::HexArgb), toCss(border));
+}
+
+QString headerCardStyle()
+{
+    const QPalette palette = QApplication::palette();
+    const QColor base = palette.color(QPalette::Base);
+    const QColor border = isDarkPalette()
+        ? palette.color(QPalette::Mid).lighter(145)
+        : palette.color(QPalette::Midlight).darker(108);
+    const QColor background = isDarkPalette() ? base.lighter(120) : base.lighter(104);
+    QColor accent(QStringLiteral("#2e86c1"));
+    accent.setAlpha(isDarkPalette() ? 36 : 20);
+
+    return QString(
+               "QFrame {"
+               "  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 %1, stop:1 %2);"
+               "  border: 1px solid %3;"
+               "  border-radius: 24px;"
+               "}")
+        .arg(toCss(background), accent.name(QColor::HexArgb), toCss(border));
+}
 }
 
 RealtimePageWidget::RealtimePageWidget(QWidget *parent)
@@ -28,8 +82,11 @@ RealtimePageWidget::RealtimePageWidget(QWidget *parent)
 
     headerCard_ = new QFrame(this);
     auto *headerLayout = new QVBoxLayout(headerCard_);
+    headerLayout->setContentsMargins(22, 20, 22, 20);
+    headerLayout->setSpacing(4);
     titleLabel_ = new QLabel(tr("环境态势总览"), headerCard_);
     subtitleLabel_ = new QLabel(tr("实时监控温度、湿度、PM2.5 与 CO2 变化，支持快速切换刷新节奏。"), headerCard_);
+    subtitleLabel_->setWordWrap(true);
     headerLayout->addWidget(titleLabel_);
     headerLayout->addWidget(subtitleLabel_);
     layout->addWidget(headerCard_);
@@ -67,13 +124,27 @@ RealtimePageWidget::RealtimePageWidget(QWidget *parent)
                           QProgressBar *&bar, int min, int max) {
         card = new QFrame(dataGroup);
         auto *cardLayout = new QVBoxLayout(card);
+        cardLayout->setContentsMargins(20, 18, 20, 18);
+        cardLayout->setSpacing(12);
+
+        auto *titleRow = new QHBoxLayout();
+        titleRow->setSpacing(8);
+
+        auto *accentDot = new QFrame(card);
+        accentDot->setFixedSize(8, 8);
+        accentDot->setStyleSheet(QStringLiteral("background: %1; border-radius: 4px;").arg(accent));
+
         nameLabel = new QLabel(name, card);
         valueLabel = new QLabel("--", card);
         bar = new QProgressBar(card);
         bar->setRange(min, max);
         bar->setTextVisible(false);
+        bar->setFixedHeight(8);
 
-        cardLayout->addWidget(nameLabel);
+        titleRow->addWidget(accentDot, 0, Qt::AlignVCenter);
+        titleRow->addWidget(nameLabel, 0, Qt::AlignVCenter);
+        titleRow->addStretch();
+        cardLayout->addLayout(titleRow);
         cardLayout->addWidget(valueLabel);
         cardLayout->addWidget(bar);
         grid->addWidget(card, row, column);
@@ -90,7 +161,7 @@ RealtimePageWidget::RealtimePageWidget(QWidget *parent)
 
     chart_ = new LineChartWidget(this);
     chart_->setMaxPoints(kDefaultMaxPoints);
-    auto *chartGroup = new QGroupBox(tr("趋势概览"), this);
+    auto *chartGroup = new QGroupBox(tr("环境态势趋势"), this);
     auto *chartLayout = new QVBoxLayout(chartGroup);
     chartLayout->addWidget(chart_);
     layout->addWidget(chartGroup);
@@ -106,8 +177,9 @@ RealtimePageWidget::RealtimePageWidget(QWidget *parent)
 void RealtimePageWidget::refreshThemeStyles()
 {
     UiStyles::applyPageStyle(this);
-    headerCard_->setStyleSheet(UiStyles::metricCardStyle(QStringLiteral("#2e86c1")));
-    titleLabel_->setStyleSheet(UiStyles::titleTextStyle());
+    headerCard_->setStyleSheet(headerCardStyle());
+    titleLabel_->setStyleSheet(UiStyles::titleTextStyle()
+                               + QStringLiteral("font-size: 24px; letter-spacing: 0.5px;"));
     subtitleLabel_->setStyleSheet(UiStyles::secondaryTextStyle());
     sourceLabel_->setStyleSheet(UiStyles::secondaryTextStyle());
     lastUpdateLabel_->setStyleSheet(UiStyles::secondaryTextStyle());
@@ -126,7 +198,7 @@ void RealtimePageWidget::applyMetricCardStyle(QFrame *card, QLabel *nameLabel, Q
         return;
     }
 
-    card->setStyleSheet(UiStyles::metricCardStyle(accentColor));
+    card->setStyleSheet(metricCardFrameStyle(accentColor));
     nameLabel->setStyleSheet(UiStyles::metricTitleStyle());
     valueLabel->setStyleSheet(UiStyles::metricValueStyle());
     bar->setStyleSheet(UiStyles::progressBarStyle(accentColor));
