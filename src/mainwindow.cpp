@@ -35,6 +35,15 @@
 
 namespace {
 constexpr int kDefaultLimit = 1000;
+
+bool validateTimeRange(const QDateTime &start, const QDateTime &end, QWidget *parent)
+{
+    if (start > end) {
+        QMessageBox::warning(parent, QObject::tr("提示"), QObject::tr("开始时间不能晚于结束时间"));
+        return false;
+    }
+    return true;
+}
 }
 
 MainWindow::MainWindow(DatabaseManager *db, ThemeManager *themeManager, LanguageManager *languageManager,
@@ -205,8 +214,7 @@ void MainWindow::handleHistoryQuery(const QDateTime &start, const QDateTime &end
         return;
     }
 
-    if (start > end) {
-        QMessageBox::warning(this, tr("提示"), tr("开始时间不能晚于结束时间"));
+    if (!validateTimeRange(start, end, this)) {
         return;
     }
 
@@ -230,8 +238,7 @@ void MainWindow::handleRefreshAlarms(const QDateTime &start, const QDateTime &en
         return;
     }
 
-    if (start > end) {
-        QMessageBox::warning(this, tr("提示"), tr("开始时间不能晚于结束时间"));
+    if (!validateTimeRange(start, end, this)) {
         return;
     }
 
@@ -275,8 +282,7 @@ void MainWindow::handleExportHistory(const QDateTime &start, const QDateTime &en
         return;
     }
 
-    if (start > end) {
-        QMessageBox::warning(this, tr("提示"), tr("开始时间不能晚于结束时间"));
+    if (!validateTimeRange(start, end, this)) {
         return;
     }
 
@@ -312,8 +318,7 @@ void MainWindow::handleExportStats(const QDateTime &start, const QDateTime &end)
     if (!sampleRepository_) {
         return;
     }
-    if (start > end) {
-        QMessageBox::warning(this, tr("提示"), tr("开始时间不能晚于结束时间"));
+    if (!validateTimeRange(start, end, this)) {
         return;
     }
 
@@ -336,8 +341,7 @@ void MainWindow::handleExportAlarms(const QDateTime &start, const QDateTime &end
     if (!alarmRepository_) {
         return;
     }
-    if (start > end) {
-        QMessageBox::warning(this, tr("提示"), tr("开始时间不能晚于结束时间"));
+    if (!validateTimeRange(start, end, this)) {
         return;
     }
 

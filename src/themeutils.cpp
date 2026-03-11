@@ -223,264 +223,218 @@ void setGroupColors(QPalette &palette, QPalette::ColorGroup group,
 #endif
 }
 
-QPalette createLightPalette()
+QPalette createPalette(const QColor &window, const QColor &windowText,
+                      const QColor &base, const QColor &alternateBase,
+                      const QColor &button, const QColor &buttonText,
+                      const QColor &mid, const QColor &dark,
+                      const QColor &highlight, const QColor &highlightedText,
+                      const QColor &link, const QColor &placeholder, bool isDark)
 {
     QPalette palette;
-    const QColor window(QStringLiteral("#edf3f9"));
-    const QColor windowText(QStringLiteral("#132033"));
-    const QColor base(QStringLiteral("#ffffff"));
-    const QColor alternateBase(QStringLiteral("#e3ebf4"));
-    const QColor button(QStringLiteral("#d9e4f0"));
-    const QColor buttonText(QStringLiteral("#132033"));
-    const QColor mid(QStringLiteral("#8aa0b7"));
-    const QColor dark(QStringLiteral("#4b6179"));
-    const QColor highlight(QStringLiteral("#1f6aa5"));
-    const QColor highlightedText(QStringLiteral("#ffffff"));
-    const QColor link(QStringLiteral("#0f5f9d"));
-    const QColor placeholder(QStringLiteral("#6d7f92"));
-
     setGroupColors(palette, QPalette::Active, window, windowText, base, alternateBase,
                    button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
     setGroupColors(palette, QPalette::Inactive, window, windowText, base, alternateBase,
                    button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Disabled, window.darker(103), mid, base.darker(102),
-                   alternateBase.darker(103), button.darker(102), mid, mid, dark,
-                   highlight.darker(105), highlightedText, link.darker(105), placeholder);
+    if (isDark) {
+        setGroupColors(palette, QPalette::Disabled, window.lighter(112), mid, base.lighter(106),
+                       alternateBase.lighter(108), button.lighter(110), mid, mid, dark,
+                       highlight.darker(108), highlightedText, link.darker(105), placeholder);
+    } else {
+        setGroupColors(palette, QPalette::Disabled, window.darker(103), mid, base.darker(102),
+                       alternateBase.darker(103), button.darker(102), mid, mid, dark,
+                       highlight.darker(105), highlightedText, link.darker(105), placeholder);
+    }
     return palette;
+}
+
+QPalette createLightPalette()
+{
+    return createPalette(
+        QColor(QStringLiteral("#edf3f9")),   // window
+        QColor(QStringLiteral("#132033")),   // windowText
+        QColor(QStringLiteral("#ffffff")),   // base
+        QColor(QStringLiteral("#e3ebf4")),   // alternateBase
+        QColor(QStringLiteral("#d9e4f0")),   // button
+        QColor(QStringLiteral("#132033")),   // buttonText
+        QColor(QStringLiteral("#8aa0b7")),   // mid
+        QColor(QStringLiteral("#4b6179")),   // dark
+        QColor(QStringLiteral("#1f6aa5")),   // highlight
+        QColor(QStringLiteral("#ffffff")),   // highlightedText
+        QColor(QStringLiteral("#0f5f9d")),   // link
+        QColor(QStringLiteral("#6d7f92")),   // placeholder
+        false                                // isDark
+    );
 }
 
 QPalette createDarkPalette()
 {
-    QPalette palette;
-    const QColor window(QStringLiteral("#101722"));
-    const QColor windowText(QStringLiteral("#eef5ff"));
-    const QColor base(QStringLiteral("#152030"));
-    const QColor alternateBase(QStringLiteral("#1b2a3d"));
-    const QColor button(QStringLiteral("#223247"));
-    const QColor buttonText(QStringLiteral("#eef5ff"));
-    const QColor mid(QStringLiteral("#7187a1"));
-    const QColor dark(QStringLiteral("#07111d"));
-    const QColor highlight(QStringLiteral("#56adff"));
-    const QColor highlightedText(QStringLiteral("#081018"));
-    const QColor link(QStringLiteral("#7cc4ff"));
-    const QColor placeholder(QStringLiteral("#8fa3b9"));
-
-    setGroupColors(palette, QPalette::Active, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Inactive, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Disabled, window.lighter(112), mid, base.lighter(106),
-                   alternateBase.lighter(108), button.lighter(110), mid, mid, dark,
-                   highlight.darker(108), highlightedText, link.darker(105), placeholder);
-    return palette;
+    return createPalette(
+        QColor(QStringLiteral("#101722")),   // window
+        QColor(QStringLiteral("#eef5ff")),   // windowText
+        QColor(QStringLiteral("#152030")),   // base
+        QColor(QStringLiteral("#1b2a3d")),   // alternateBase
+        QColor(QStringLiteral("#223247")),   // button
+        QColor(QStringLiteral("#eef5ff")),   // buttonText
+        QColor(QStringLiteral("#7187a1")),   // mid
+        QColor(QStringLiteral("#07111d")),   // dark
+        QColor(QStringLiteral("#56adff")),   // highlight
+        QColor(QStringLiteral("#081018")),   // highlightedText
+        QColor(QStringLiteral("#7cc4ff")),   // link
+        QColor(QStringLiteral("#8fa3b9")),   // placeholder
+        true                                 // isDark
+    );
 }
 
 QPalette createSkyBluePalette()
 {
-    QPalette palette;
-    const QColor window(QStringLiteral("#e8f4fc"));
-    const QColor windowText(QStringLiteral("#1a3a4a"));
-    const QColor base(QStringLiteral("#ffffff"));
-    const QColor alternateBase(QStringLiteral("#d6ebf5"));
-    const QColor button(QStringLiteral("#c5e3f2"));
-    const QColor buttonText(QStringLiteral("#1a3a4a"));
-    const QColor mid(QStringLiteral("#7eb8d0"));
-    const QColor dark(QStringLiteral("#3d7a94"));
-    const QColor highlight(QStringLiteral("#2196f3"));
-    const QColor highlightedText(QStringLiteral("#ffffff"));
-    const QColor link(QStringLiteral("#1976d2"));
-    const QColor placeholder(QStringLiteral("#5a8fa8"));
-
-    setGroupColors(palette, QPalette::Active, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Inactive, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Disabled, window.darker(103), mid, base.darker(102),
-                   alternateBase.darker(103), button.darker(102), mid, mid, dark,
-                   highlight.darker(105), highlightedText, link.darker(105), placeholder);
-    return palette;
+    return createPalette(
+        QColor(QStringLiteral("#e8f4fc")),   // window
+        QColor(QStringLiteral("#1a3a4a")),   // windowText
+        QColor(QStringLiteral("#ffffff")),   // base
+        QColor(QStringLiteral("#d6ebf5")),   // alternateBase
+        QColor(QStringLiteral("#c5e3f2")),   // button
+        QColor(QStringLiteral("#1a3a4a")),   // buttonText
+        QColor(QStringLiteral("#7eb8d0")),   // mid
+        QColor(QStringLiteral("#3d7a94")),   // dark
+        QColor(QStringLiteral("#2196f3")),   // highlight
+        QColor(QStringLiteral("#ffffff")),   // highlightedText
+        QColor(QStringLiteral("#1976d2")),   // link
+        QColor(QStringLiteral("#5a8fa8")),   // placeholder
+        false                                // isDark
+    );
 }
 
 QPalette createDeepBluePalette()
 {
-    QPalette palette;
-    const QColor window(QStringLiteral("#0d1b2a"));
-    const QColor windowText(QStringLiteral("#e0f2fe"));
-    const QColor base(QStringLiteral("#142536"));
-    const QColor alternateBase(QStringLiteral("#1c3045"));
-    const QColor button(QStringLiteral("#243b52"));
-    const QColor buttonText(QStringLiteral("#e0f2fe"));
-    const QColor mid(QStringLiteral("#5c7a99"));
-    const QColor dark(QStringLiteral("#080f18"));
-    const QColor highlight(QStringLiteral("#38bdf8"));
-    const QColor highlightedText(QStringLiteral("#0a1621"));
-    const QColor link(QStringLiteral("#7dd3fc"));
-    const QColor placeholder(QStringLiteral("#7896b5"));
-
-    setGroupColors(palette, QPalette::Active, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Inactive, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Disabled, window.lighter(112), mid, base.lighter(106),
-                   alternateBase.lighter(108), button.lighter(110), mid, mid, dark,
-                   highlight.darker(108), highlightedText, link.darker(105), placeholder);
-    return palette;
+    return createPalette(
+        QColor(QStringLiteral("#0d1b2a")),   // window
+        QColor(QStringLiteral("#e0f2fe")),   // windowText
+        QColor(QStringLiteral("#142536")),   // base
+        QColor(QStringLiteral("#1c3045")),   // alternateBase
+        QColor(QStringLiteral("#243b52")),   // button
+        QColor(QStringLiteral("#e0f2fe")),   // buttonText
+        QColor(QStringLiteral("#5c7a99")),   // mid
+        QColor(QStringLiteral("#080f18")),   // dark
+        QColor(QStringLiteral("#38bdf8")),   // highlight
+        QColor(QStringLiteral("#0a1621")),   // highlightedText
+        QColor(QStringLiteral("#7dd3fc")),   // link
+        QColor(QStringLiteral("#7896b5")),   // placeholder
+        true                                 // isDark
+    );
 }
 
 QPalette createForestGreenPalette()
 {
-    QPalette palette;
-    const QColor window(QStringLiteral("#e8f5e9"));
-    const QColor windowText(QStringLiteral("#1b3d1c"));
-    const QColor base(QStringLiteral("#ffffff"));
-    const QColor alternateBase(QStringLiteral("#d4edda"));
-    const QColor button(QStringLiteral("#c3e6cb"));
-    const QColor buttonText(QStringLiteral("#1b3d1c"));
-    const QColor mid(QStringLiteral("#7eb88a"));
-    const QColor dark(QStringLiteral("#3d7a4a"));
-    const QColor highlight(QStringLiteral("#4caf50"));
-    const QColor highlightedText(QStringLiteral("#ffffff"));
-    const QColor link(QStringLiteral("#2e7d32"));
-    const QColor placeholder(QStringLiteral("#5a8f65"));
-
-    setGroupColors(palette, QPalette::Active, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Inactive, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Disabled, window.darker(103), mid, base.darker(102),
-                   alternateBase.darker(103), button.darker(102), mid, mid, dark,
-                   highlight.darker(105), highlightedText, link.darker(105), placeholder);
-    return palette;
+    return createPalette(
+        QColor(QStringLiteral("#e8f5e9")),   // window
+        QColor(QStringLiteral("#1b3d1c")),   // windowText
+        QColor(QStringLiteral("#ffffff")),   // base
+        QColor(QStringLiteral("#d4edda")),   // alternateBase
+        QColor(QStringLiteral("#c3e6cb")),   // button
+        QColor(QStringLiteral("#1b3d1c")),   // buttonText
+        QColor(QStringLiteral("#7eb88a")),   // mid
+        QColor(QStringLiteral("#3d7a4a")),   // dark
+        QColor(QStringLiteral("#4caf50")),   // highlight
+        QColor(QStringLiteral("#ffffff")),   // highlightedText
+        QColor(QStringLiteral("#2e7d32")),   // link
+        QColor(QStringLiteral("#5a8f65")),   // placeholder
+        false                                // isDark
+    );
 }
 
 QPalette createSunsetOrangePalette()
 {
-    QPalette palette;
-    const QColor window(QStringLiteral("#fff3e0"));
-    const QColor windowText(QStringLiteral("#4a2c0a"));
-    const QColor base(QStringLiteral("#ffffff"));
-    const QColor alternateBase(QStringLiteral("#ffe0b2"));
-    const QColor button(QStringLiteral("#ffcc80"));
-    const QColor buttonText(QStringLiteral("#4a2c0a"));
-    const QColor mid(QStringLiteral("#d49a5c"));
-    const QColor dark(QStringLiteral("#a06a32"));
-    const QColor highlight(QStringLiteral("#ff8c00"));
-    const QColor highlightedText(QStringLiteral("#ffffff"));
-    const QColor link(QStringLiteral("#e65100"));
-    const QColor placeholder(QStringLiteral("#b07d4a"));
-
-    setGroupColors(palette, QPalette::Active, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Inactive, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Disabled, window.darker(103), mid, base.darker(102),
-                   alternateBase.darker(103), button.darker(102), mid, mid, dark,
-                   highlight.darker(105), highlightedText, link.darker(105), placeholder);
-    return palette;
+    return createPalette(
+        QColor(QStringLiteral("#fff3e0")),   // window
+        QColor(QStringLiteral("#4a2c0a")),   // windowText
+        QColor(QStringLiteral("#ffffff")),   // base
+        QColor(QStringLiteral("#ffe0b2")),   // alternateBase
+        QColor(QStringLiteral("#ffcc80")),   // button
+        QColor(QStringLiteral("#4a2c0a")),   // buttonText
+        QColor(QStringLiteral("#d49a5c")),   // mid
+        QColor(QStringLiteral("#a06a32")),   // dark
+        QColor(QStringLiteral("#ff8c00")),   // highlight
+        QColor(QStringLiteral("#ffffff")),   // highlightedText
+        QColor(QStringLiteral("#e65100")),   // link
+        QColor(QStringLiteral("#b07d4a")),   // placeholder
+        false                                // isDark
+    );
 }
 
 QPalette createVioletPurplePalette()
 {
-    QPalette palette;
-    const QColor window(QStringLiteral("#f3e5f5"));
-    const QColor windowText(QStringLiteral("#3d1a4a"));
-    const QColor base(QStringLiteral("#ffffff"));
-    const QColor alternateBase(QStringLiteral("#e1bee7"));
-    const QColor button(QStringLiteral("#ce93d8"));
-    const QColor buttonText(QStringLiteral("#3d1a4a"));
-    const QColor mid(QStringLiteral("#a87db5"));
-    const QColor dark(QStringLiteral("#7a4a8a"));
-    const QColor highlight(QStringLiteral("#9c27b0"));
-    const QColor highlightedText(QStringLiteral("#ffffff"));
-    const QColor link(QStringLiteral("#7b1fa2"));
-    const QColor placeholder(QStringLiteral("#9a6aa8"));
-
-    setGroupColors(palette, QPalette::Active, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Inactive, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Disabled, window.darker(103), mid, base.darker(102),
-                   alternateBase.darker(103), button.darker(102), mid, mid, dark,
-                   highlight.darker(105), highlightedText, link.darker(105), placeholder);
-    return palette;
+    return createPalette(
+        QColor(QStringLiteral("#f3e5f5")),   // window
+        QColor(QStringLiteral("#3d1a4a")),   // windowText
+        QColor(QStringLiteral("#ffffff")),   // base
+        QColor(QStringLiteral("#e1bee7")),   // alternateBase
+        QColor(QStringLiteral("#ce93d8")),   // button
+        QColor(QStringLiteral("#3d1a4a")),   // buttonText
+        QColor(QStringLiteral("#a87db5")),   // mid
+        QColor(QStringLiteral("#7a4a8a")),   // dark
+        QColor(QStringLiteral("#9c27b0")),   // highlight
+        QColor(QStringLiteral("#ffffff")),   // highlightedText
+        QColor(QStringLiteral("#7b1fa2")),   // link
+        QColor(QStringLiteral("#9a6aa8")),   // placeholder
+        false                                // isDark
+    );
 }
 
 QPalette createNeutralGrayPalette()
 {
-    QPalette palette;
-    const QColor window(QStringLiteral("#f5f5f5"));
-    const QColor windowText(QStringLiteral("#212121"));
-    const QColor base(QStringLiteral("#ffffff"));
-    const QColor alternateBase(QStringLiteral("#e0e0e0"));
-    const QColor button(QStringLiteral("#d6d6d6"));
-    const QColor buttonText(QStringLiteral("#212121"));
-    const QColor mid(QStringLiteral("#9e9e9e"));
-    const QColor dark(QStringLiteral("#616161"));
-    const QColor highlight(QStringLiteral("#607d8b"));
-    const QColor highlightedText(QStringLiteral("#ffffff"));
-    const QColor link(QStringLiteral("#455a64"));
-    const QColor placeholder(QStringLiteral("#757575"));
-
-    setGroupColors(palette, QPalette::Active, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Inactive, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Disabled, window.darker(103), mid, base.darker(102),
-                   alternateBase.darker(103), button.darker(102), mid, mid, dark,
-                   highlight.darker(105), highlightedText, link.darker(105), placeholder);
-    return palette;
+    return createPalette(
+        QColor(QStringLiteral("#f5f5f5")),   // window
+        QColor(QStringLiteral("#212121")),   // windowText
+        QColor(QStringLiteral("#ffffff")),   // base
+        QColor(QStringLiteral("#e0e0e0")),   // alternateBase
+        QColor(QStringLiteral("#d6d6d6")),   // button
+        QColor(QStringLiteral("#212121")),   // buttonText
+        QColor(QStringLiteral("#9e9e9e")),   // mid
+        QColor(QStringLiteral("#616161")),   // dark
+        QColor(QStringLiteral("#607d8b")),   // highlight
+        QColor(QStringLiteral("#ffffff")),   // highlightedText
+        QColor(QStringLiteral("#455a64")),   // link
+        QColor(QStringLiteral("#757575")),   // placeholder
+        false                                // isDark
+    );
 }
 
 QPalette createSakuraPinkPalette()
 {
-    QPalette palette;
-    const QColor window(QStringLiteral("#fce4ec"));
-    const QColor windowText(QStringLiteral("#4a1a2e"));
-    const QColor base(QStringLiteral("#ffffff"));
-    const QColor alternateBase(QStringLiteral("#f8bbd9"));
-    const QColor button(QStringLiteral("#f48fb1"));
-    const QColor buttonText(QStringLiteral("#4a1a2e"));
-    const QColor mid(QStringLiteral("#c97b9a"));
-    const QColor dark(QStringLiteral("#9a4a6a"));
-    const QColor highlight(QStringLiteral("#e91e63"));
-    const QColor highlightedText(QStringLiteral("#ffffff"));
-    const QColor link(QStringLiteral("#c2185b"));
-    const QColor placeholder(QStringLiteral("#b06a85"));
-
-    setGroupColors(palette, QPalette::Active, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Inactive, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Disabled, window.darker(103), mid, base.darker(102),
-                   alternateBase.darker(103), button.darker(102), mid, mid, dark,
-                   highlight.darker(105), highlightedText, link.darker(105), placeholder);
-    return palette;
+    return createPalette(
+        QColor(QStringLiteral("#fce4ec")),   // window
+        QColor(QStringLiteral("#4a1a2e")),   // windowText
+        QColor(QStringLiteral("#ffffff")),   // base
+        QColor(QStringLiteral("#f8bbd9")),   // alternateBase
+        QColor(QStringLiteral("#f48fb1")),   // button
+        QColor(QStringLiteral("#4a1a2e")),   // buttonText
+        QColor(QStringLiteral("#c97b9a")),   // mid
+        QColor(QStringLiteral("#9a4a6a")),   // dark
+        QColor(QStringLiteral("#e91e63")),   // highlight
+        QColor(QStringLiteral("#ffffff")),   // highlightedText
+        QColor(QStringLiteral("#c2185b")),   // link
+        QColor(QStringLiteral("#b06a85")),   // placeholder
+        false                                // isDark
+    );
 }
 
 QPalette createLemonYellowPalette()
 {
-    QPalette palette;
-    const QColor window(QStringLiteral("#fffde7"));
-    const QColor windowText(QStringLiteral("#4a4a0a"));
-    const QColor base(QStringLiteral("#ffffff"));
-    const QColor alternateBase(QStringLiteral("#fff9c4"));
-    const QColor button(QStringLiteral("#fff59d"));
-    const QColor buttonText(QStringLiteral("#4a4a0a"));
-    const QColor mid(QStringLiteral("#d4c96a"));
-    const QColor dark(QStringLiteral("#a69a3a"));
-    const QColor highlight(QStringLiteral("#ffc107"));
-    const QColor highlightedText(QStringLiteral("#3d3d00"));
-    const QColor link(QStringLiteral("#ff8f00"));
-    const QColor placeholder(QStringLiteral("#b0a85a"));
-
-    setGroupColors(palette, QPalette::Active, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Inactive, window, windowText, base, alternateBase,
-                   button, buttonText, mid, dark, highlight, highlightedText, link, placeholder);
-    setGroupColors(palette, QPalette::Disabled, window.darker(103), mid, base.darker(102),
-                   alternateBase.darker(103), button.darker(102), mid, mid, dark,
-                   highlight.darker(105), highlightedText, link.darker(105), placeholder);
-    return palette;
+    return createPalette(
+        QColor(QStringLiteral("#fffde7")),   // window
+        QColor(QStringLiteral("#4a4a0a")),   // windowText
+        QColor(QStringLiteral("#ffffff")),   // base
+        QColor(QStringLiteral("#fff9c4")),   // alternateBase
+        QColor(QStringLiteral("#fff59d")),   // button
+        QColor(QStringLiteral("#4a4a0a")),   // buttonText
+        QColor(QStringLiteral("#d4c96a")),   // mid
+        QColor(QStringLiteral("#a69a3a")),   // dark
+        QColor(QStringLiteral("#ffc107")),   // highlight
+        QColor(QStringLiteral("#3d3d00")),   // highlightedText
+        QColor(QStringLiteral("#ff8f00")),   // link
+        QColor(QStringLiteral("#b0a85a")),   // placeholder
+        false                                // isDark
+    );
 }
 
 }
