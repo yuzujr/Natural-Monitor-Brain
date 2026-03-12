@@ -28,6 +28,8 @@ constexpr double kPmMin = 0.0;
 constexpr double kPmMax = 200.0;
 constexpr double kCo2Min = 300.0;
 constexpr double kCo2Max = 2000.0;
+constexpr int kChartWidgetMinHeight = 220;
+constexpr int kCustomPlotMinHeight = 180;
 
 double normalize(double value, double minValue, double maxValue)
 {
@@ -72,7 +74,7 @@ QColor chartBorderColor(const QPalette &palette)
 LineChartWidget::LineChartWidget(QWidget *parent)
     : QWidget(parent)
 {
-    setMinimumHeight(320);
+    setMinimumHeight(kChartWidgetMinHeight);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 #ifdef NATURAL_MONITOR_USE_QCUSTOMPLOT
@@ -83,7 +85,7 @@ LineChartWidget::LineChartWidget(QWidget *parent)
     customPlot_ = new QCustomPlot(this);
     customPlot_->legend->setVisible(false);
     customPlot_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    customPlot_->setMinimumHeight(260);
+    customPlot_->setMinimumHeight(kCustomPlotMinHeight);
     customPlot_->axisRect()->setMinimumMargins(QMargins(48, 12, 18, 42));
     customPlot_->axisRect()->setAutoMargins(QCP::msLeft | QCP::msBottom);
     customPlot_->xAxis->setLabel(tr("采样序列"));
